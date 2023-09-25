@@ -4,6 +4,8 @@ from rest_framework.views import APIView
 from .serializers import RegisterSerializer, ResponseUserSerializer, MyTokenObtainPairSerializer
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from .models import User
 
@@ -17,6 +19,7 @@ class RegisterView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+    
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
     @swagger_auto_schema(tags=['auth'], operation_summary='User Login')
@@ -28,19 +31,29 @@ class MyTokenObtainPairView(TokenObtainPairView):
         return response
 
 class MyTokenRefreshView(TokenRefreshView):
-    @swagger_auto_schema(tags=['auth'], operation_summary='User Logout')
+    @swagger_auto_schema(tags=['auth'], operation_summary='User Refresh')
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
     @swagger_auto_schema(tags=['auth'], operation_summary='User Logout')
-    def post(self,request):
-        reponse=Response()
-        reponse.data={"Message": "You are logged out"}
-        reponse.delete_cookie('access')
-        reponse.delete_cookie('refresh')
-        return reponse
+    def post(self, request):
+        refresh_token = request.data.get('refresh')
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()  # Blacklist the refresh token
+                response=Response()
+                response.data={'detail': 'Successfully logged out.'}
+                response.status_code=status.HTTP_200_OK
+                response.delete_cookie('access')
+                response.delete_cookie('refresh')
+                return response
+            except Exception as e:
+                return Response({'detail': 'Invalid refresh token.'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'detail': 'Refresh token not provided.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
