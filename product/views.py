@@ -10,9 +10,9 @@ class IsOwner(permissions.BasePermission):
     def has_permission(self, request, view):
         pk = view.kwargs["pk"]
         # print(view.kwargs["pk"])
-        user = request.user.is_superuser
+        superuser = request.user.is_superuser
         product = Product.objects.filter(pk=pk, create_by=request.user.id).first()
-        return True if product or user else False
+        return True if product or superuser else False
 
     # def has_object_permission(self, request, view, obj):
     #     print(view.kwargs)
@@ -31,5 +31,5 @@ class ProductViews(viewsets.ModelViewSet):
             or self.action == "delete"
             or self.action == "update"
         ):
-            return [IsOwner(), permissions.IsAuthenticated()]
+            return [IsOwner(), permissions.IsAuthenticated(), permissions.IsAdminUser()]
         return [permissions.AllowAny()]

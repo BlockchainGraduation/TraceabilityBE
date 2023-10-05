@@ -5,6 +5,7 @@ from .serializers import (
     RegisterSerializer,
     ResponseUserSerializer,
     MyTokenObtainPairSerializer,
+    LogoutSerializer,
 )
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -28,7 +29,7 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response({"message": serializer.errors})
 
 
@@ -53,7 +54,9 @@ class MyTokenRefreshView(TokenRefreshView):
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(tags=["auth"], operation_summary="User Logout")
+    @swagger_auto_schema(
+        tags=["auth"], request_body=LogoutSerializer, operation_summary="User Logout"
+    )
     def post(self, request):
         refresh_token = request.data.get("refresh")
         if refresh_token:
