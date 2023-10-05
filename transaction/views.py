@@ -3,6 +3,7 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions, status
+from drf_yasg.utils import swagger_auto_schema
 from .models import Transaction
 from .serializers import TransactionSerializer
 from product.models import Product
@@ -17,7 +18,6 @@ class TransactionView(generics.CreateAPIView, generics.ListAPIView):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
     lookup_field = ["create_by"]
-    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         # super().create(request, *args, **kwargs)
@@ -30,6 +30,12 @@ class TransactionView(generics.CreateAPIView, generics.ListAPIView):
 
 
 class AcceptTransactionView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        tags=["transaction"],
+        operation_summary="Accept Transaction",
+    )
     def patch(self, request, pk, *args, **kwargs):
         user = User.objects.filter(pk=request.user.pk).first()
         transaction = Transaction.objects.filter(pk=pk).first()
