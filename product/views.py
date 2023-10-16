@@ -32,4 +32,6 @@ class ProductViews(viewsets.ModelViewSet):
             or self.action == "update"
         ):
             return [IsOwner(), permissions.IsAuthenticated(), permissions.IsAdminUser()]
+        if self.action == "create":
+            return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]

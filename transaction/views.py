@@ -17,16 +17,30 @@ from rest_framework import generics
 class TransactionView(generics.CreateAPIView, generics.ListAPIView):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
-    lookup_field = ["create_by"]
+    # lookup_field = "id"
 
     def create(self, request, *args, **kwargs):
         # super().create(request, *args, **kwargs)
-
         product = Product.objects.filter(pk=request.data["product_id"]).first()
         if product:
             if product.quantity <= request.data["product_id"]:
                 return super().create(request, *args, **kwargs)
         return Response({"message": "Loi"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+
+class RetrieveTransactionView(generics.RetrieveAPIView):
+    queryset = Transaction.objects.all()
+    serializer_class = TransactionSerializer
+
+    # lookup_field = "id"
+    @swagger_auto_schema(tags=["transaction"], operation_summary="Get Transaction")
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
 
 class AcceptTransactionView(APIView):
