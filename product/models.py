@@ -13,8 +13,9 @@ class Product(models.Model):
         "transaction.Transaction", on_delete=models.PROTECT, null=True, default=None
     )
     name = models.CharField(unique=True)
+    avatar = models.ImageField(upload_to="traceability/", blank=True)
     description = models.TextField()
-    banner = ArrayField(models.CharField(max_length=200))
+    # banner = models.ManyToManyField("image.Image")
     price = models.IntegerField()
     quantity = models.IntegerField()
     product_type = models.CharField()

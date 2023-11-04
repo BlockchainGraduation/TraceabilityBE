@@ -37,11 +37,16 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "cloudinary_storage",
     "django.contrib.staticfiles",
+    "cloudinary",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "drf_yasg",
+    "user_image",
+    "product_image",
+    "grow_up_image",
     "user",
     "product",
     "growup",
@@ -156,7 +161,7 @@ CORS_ALLOW_HEADERS = ["*"]
 ALLOWED_HOSTS = ["*"]
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=24),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
@@ -195,3 +200,20 @@ SWAGGER_SETTINGS = {
     },
     # 'USE_SESSION_AUTH':False
 }
+# Send mail
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = "587"
+EMAIL_USE_TLS = True  # Set to False if your email server doesn't use TLS
+EMAIL_HOST_USER = "duongtrungqb12@gmail.com"  # Replace with your email username
+EMAIL_HOST_PASSWORD = "dlowmcbrjnydxedk"
+# Replace with your email password
+# SPECTACULAR_SETTINGS = {"COMPONENT_SPLIT_REQUEST": True}
+##cloudinary
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": "dhdztuiag",
+    "API_KEY": "564387499357929",
+    "API_SECRET": "0lDQDb72t79wF_3gBWYzPhuYdWI",
+}
+MEDIA_URL = "/media/"  # or any prefix you choose
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"

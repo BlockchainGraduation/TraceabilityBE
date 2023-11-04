@@ -4,17 +4,20 @@ from rest_framework.views import APIView
 from .serializers import (
     RegisterSerializer,
     ResponseUserSerializer,
+    UpdateUserSerializer,
     MyTokenObtainPairSerializer,
     LogoutSerializer,
 )
+from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from .models import User
-
-# Create your views here.
+from product.models import Product
+from product.serializers import ProductSerializers
+from .utils import generate_otp, send_otp_email
 
 
 class RegisterView(APIView):
@@ -96,3 +99,47 @@ class UserView(APIView):
             "auth": str(request.auth),  # None
         }
         return Response(serializer.data)
+
+
+class UpdateUserView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UpdateUserSerializer
+
+    @swagger_auto_schema(auto_schema=None)
+    def put(self, request, *args, **kwargs):
+        return
+
+    @swagger_auto_schema(auto_schema=None)
+    def get(self, request, *args, **kwargs):
+        return
+
+    def partial_update(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            request.user, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetUserView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        user = User.objects.filter(pk=kwargs["pk"]).first()
+        if user:
+            product = Product.objects.filter(create_by=kwargs["pk"])
+            return Response(
+                {
+                    "user": ResponseUserSerializer(user).data,
+                    "products": ProductSerializers(product, many=True).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            {"detail": "USER_NOT_FOUND"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # def partial_update(self, request, *args, **kwargs):
+    #     return super().partial_update(request, *args, **kwargs)
