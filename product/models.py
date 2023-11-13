@@ -8,7 +8,9 @@ from django.contrib.postgres.fields import ArrayField
 
 class Product(models.Model):
     # id=models.UUIDField(primary_key=True)
-    create_by = models.ForeignKey("user.User", on_delete=models.PROTECT)
+    create_by = models.ForeignKey(
+        "user.User", related_name="product", on_delete=models.PROTECT
+    )
     transaction_id = models.ForeignKey(
         "transaction.Transaction", on_delete=models.PROTECT, null=True, default=None
     )

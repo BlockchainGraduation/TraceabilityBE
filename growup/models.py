@@ -6,10 +6,11 @@ from product.models import Product
 
 
 class GrowUp(models.Model):
-    product_id = models.ForeignKey(Product, on_delete=models.PROTECT)
+    product_id = models.ForeignKey(
+        Product, related_name="growup", on_delete=models.PROTECT
+    )
     title = models.CharField()
     description = models.CharField()
-    image = ArrayField(models.ImageField(upload_to="traceability/"))
 
     def __str__(self):
         return self.title

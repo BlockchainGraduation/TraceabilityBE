@@ -15,6 +15,8 @@ urlpatterns = [
     ),
     path("token/refresh", views.MyTokenRefreshView.as_view(), name="token_refresh"),
     path("register", views.RegisterView.as_view()),
+    path("confirmOTP", views.ConfirmOTP.as_view()),
+    path("survey", views.RegisterRuleView.as_view()),
     path("logout", views.LogoutView.as_view(), name="token_blacklist"),
     path("user", views.UserView.as_view()),
     path("user/update", views.UpdateUserView.as_view()),
