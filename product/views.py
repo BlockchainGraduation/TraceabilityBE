@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework import permissions
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from .serializers import ProductSerializers
 from .models import Product
 from user.models import User
@@ -10,9 +12,9 @@ class IsOwner(permissions.BasePermission):
     def has_permission(self, request, view):
         pk = view.kwargs["pk"]
         # print(view.kwargs["pk"])
-        user = request.user.is_superuser
+        superuser = request.user.is_superuser
         product = Product.objects.filter(pk=pk, create_by=request.user.id).first()
-        return True if product or user else False
+        return True if product or superuser else False
 
     # def has_object_permission(self, request, view, obj):
     #     print(view.kwargs)
@@ -23,7 +25,11 @@ class IsOwner(permissions.BasePermission):
 class ProductViews(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializers
+
     # permission_classes = [IsOwner]
+    # def create(self, request, *args, **kwargs):
+    #     image = Image.objects.create(request.FILES)
+    #     return super().create(request, *args, **kwargs)
 
     def get_permissions(self):
         if (
@@ -32,4 +38,6 @@ class ProductViews(viewsets.ModelViewSet):
             or self.action == "update"
         ):
             return [IsOwner(), permissions.IsAuthenticated()]
+        if self.action == "create":
+            return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]
