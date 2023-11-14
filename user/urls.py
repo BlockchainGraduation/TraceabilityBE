@@ -20,5 +20,5 @@ urlpatterns = [
     path("logout", views.LogoutView.as_view(), name="token_blacklist"),
     path("user", views.UserView.as_view()),
     path("user/update", views.UpdateUserView.as_view()),
-    path("user/<int:pk>", views.GetUserView.as_view()),
+    path("user/<uuid:pk>", views.GetUserView.as_view()),
 ]

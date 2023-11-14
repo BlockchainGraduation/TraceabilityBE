@@ -216,6 +216,7 @@ class GetUserView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
+        # print(kwargs["pk"])
         user = User.objects.filter(pk=kwargs["pk"]).first()
         if user:
             product = Product.objects.filter(create_by=kwargs["pk"])

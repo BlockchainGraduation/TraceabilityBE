@@ -9,6 +9,7 @@ from rest_framework.parsers import MultiPartParser
 from product_image.serializers import ProductImageSerializers
 from product_image.models import ProductImage
 from growup.serializers import GrowUpSerializers
+from comment.serializers import CommentSerializers
 from rest_framework.fields import ListField
 
 
@@ -16,6 +17,7 @@ from rest_framework.fields import ListField
 class ProductSerializers(serializers.ModelSerializer):
     banner = ProductImageSerializers(many=True, read_only=True)
     growup = GrowUpSerializers(many=True, read_only=True)
+    comments = CommentSerializers(many=True, read_only=True)
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(
             max_length=1000000, allow_empty_file=False, use_url=False
