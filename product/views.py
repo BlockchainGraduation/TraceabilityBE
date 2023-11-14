@@ -8,10 +8,12 @@ from .models import Product
 from user.models import User
 
 
-class IsOwner(permissions.BasePermission):
+class IsOwnerProduct(permissions.BasePermission):
     def has_permission(self, request, view):
         pk = view.kwargs["pk"]
         # print(view.kwargs["pk"])
+        # print(view.kwargs["pk"])
+        # print("user", request.user.id)
         superuser = request.user.is_superuser
         product = Product.objects.filter(pk=pk, create_by=request.user.id).first()
         return True if product or superuser else False
@@ -34,10 +36,10 @@ class ProductViews(viewsets.ModelViewSet):
     def get_permissions(self):
         if (
             self.action == "partial_update"
-            or self.action == "delete"
+            or self.action == "destroy"
             or self.action == "update"
         ):
-            return [IsOwner(), permissions.IsAuthenticated()]
+            return [IsOwnerProduct(), permissions.IsAuthenticated()]
         if self.action == "create":
             return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]

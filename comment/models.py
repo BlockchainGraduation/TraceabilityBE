@@ -4,7 +4,7 @@ from user.models import User
 
 
 # Create your models here.
-class GrowUp(models.Model):
+class Comment(models.Model):
     product_id = models.ForeignKey(
         Product, related_name="comments", on_delete=models.PROTECT
     )

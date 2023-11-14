@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "grow_up_image",
     "user",
     "product",
+    "comment",
     "growup",
     "transaction",
 ]
@@ -61,6 +62,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "product.middleware.CustomExceptionHandlerMiddleware",
 ]
 
 ROOT_URLCONF = "traceability_be.urls"
@@ -152,7 +154,7 @@ AUTH_USER_MODEL = "user.User"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    )
+    ),
 }
 
 CORS_ORIGIN_ALLOW_ALL = True

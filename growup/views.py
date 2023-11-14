@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from .models import GrowUp
 from .serializers import GrowUpSerializers
 from rest_framework import permissions
-from product.views import IsOwner
+from product.views import IsOwnerProduct
 
 # Create your views here.
 
@@ -18,7 +18,7 @@ class GrowUpView(viewsets.ModelViewSet):
             or self.action == "delete"
             or self.action == "update"
         ):
-            return [permissions.IsAuthenticated(), IsOwner()]
+            return [permissions.IsAuthenticated(), IsOwnerProduct()]
         if self.action == "create":
             return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]

@@ -103,6 +103,7 @@ class RegisterView(APIView):
             if user.is_active is False:
                 otp = generate_otp()
                 send_otp_email(request.data["email"], otp)
+                user.username = request.data["username"]
                 user.otp = otp
                 user.save()
                 return Response(
