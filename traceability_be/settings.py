@@ -203,6 +203,8 @@ SWAGGER_SETTINGS = {
     # 'USE_SESSION_AUTH':False
 }
 # Send mail
+# ADMINS = (("Your Name", "duongtrungqb12@gmail.com"),)
+# OSCAR_FROM_EMAIL = "SimpRaidenEi"
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = "587"

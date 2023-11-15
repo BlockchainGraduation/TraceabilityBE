@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from .serializers import (
@@ -8,6 +9,8 @@ from .serializers import (
     UpdateUserSerializer,
     MyTokenObtainPairSerializer,
     ConfirmOTPSerializer,
+    ResetPasswordSerializer,
+    ForgetSerializer,
     LogoutSerializer,
 )
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -65,6 +68,65 @@ class ConfirmOTP(APIView):
                     {"detail": "WRONG_OTP"}, status=status.HTTP_400_BAD_REQUEST
                 )
         return Response({"detail": serializer.errors})
+
+
+class ForgetView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        request_body=ConfirmOTPSerializer,
+        tags=["auth"],
+        operation_summary="User Forget Password",
+    )
+    def post(self, request):
+        serializer = ForgetSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            user = User.objects.filter(email=serializer.data["email"]).first()
+            if user:
+                otp = generate_otp()
+                user.otp = otp
+                user.save()
+                send_otp_email(user.email, otp)
+                return Response(
+                    {"detail": "SEND_EMAIL_SUCCESS"}, status=status.HTTP_202_ACCEPTED
+                )
+            else:
+                return Response(
+                    {"detail": "ACCOUNT_NOT_EXISTS"}, status=status.HTTP_400_BAD_REQUEST
+                )
+        return Response({"detail": "DATA_INVALID"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResetPasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        request_body=ResetPasswordSerializer,
+        tags=["auth"],
+        operation_summary="User Reset Password",
+    )
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            print(serializer.data)
+            if serializer.data["new_password"] != serializer.data["re_new_password"]:
+                return Response(
+                    {"detail": "DATA_INVALID"}, status=status.HTTP_400_BAD_REQUEST
+                )
+            user = User.objects.filter(email=request.user.email).first()
+            if user.check_password(serializer.data["old_password"]):
+                user.set_password(serializer.data["new_password"])
+                user.save()
+                return Response(
+                    {"detail": "RESET_PASSWORD_SUCCESS"},
+                    status=status.HTTP_202_ACCEPTED,
+                )
+            else:
+                return Response(
+                    {"detail": "PASSWORD_INVALID"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        return Response({"detail": "DATA_INVALID"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RegisterRuleView(APIView):
