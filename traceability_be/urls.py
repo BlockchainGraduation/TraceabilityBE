@@ -39,6 +39,7 @@ urlpatterns = [
     path("api/", include("product.urls"), name="product"),
     path("api/", include("transaction.urls"), name="transaction"),
     path("api/growup", include("growup.urls"), name="growup"),
+    path("api/comment", include("comment.urls"), name="comment"),
     path(
         "swagger<format>/", schema_view.without_ui(cache_timeout=0), name="schema-json"
     ),

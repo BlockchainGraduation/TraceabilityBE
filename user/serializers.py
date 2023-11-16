@@ -70,12 +70,26 @@ class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
 
 
-# class ResponseUserProductSerializer(serializers.ModelSerializer):
-#     product = ProductSerializers(many=True, read_only=True)
+class ForgetSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=30, min_length=None, allow_blank=False)
 
-#     class Meta:
-#         model = User
-#         exclude = ["user_permissions", "groups", "password", "otp"]
+
+class ResetPasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(
+        max_length=20, min_length=None, allow_blank=False
+    )
+    new_password = serializers.CharField(max_length=20, min_length=4, allow_blank=False)
+    re_new_password = serializers.CharField(
+        max_length=20, min_length=4, allow_blank=False
+    )
+
+
+class ResponseUserDetailSerializer(serializers.ModelSerializer):
+    product = ProductSerializers(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        exclude = ["user_permissions", "groups", "password", "otp"]
 
 
 class ResponseUserSerializer(serializers.ModelSerializer):
@@ -83,19 +97,32 @@ class ResponseUserSerializer(serializers.ModelSerializer):
         model = User
         exclude = ["user_permissions", "groups", "password", "otp"]
         # fields = '__all__'
-        # extra_kwargs = {
-        #     'password': {'write_only': True}
-        # }
+        extra_kwargs = {
+            "password": {"read_only": True},
+            "is_active": {"read_only": True},
+            "is_staff": {"read_only": True},
+            "is_superuser": {"read_only": True},
+        }
 
 
 class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
+        # fields =
         exclude = ["password"]
         read_only_fields = (
             "user_permissions",
             "groups",
             "password",
             "username",
+            "is_active",
+            "is_staff",
+            "is_superuser",
             "date_joined",
+            "role",
+            "otp",
+            "confirm_status",
+            "email",
+            "username",
+            "last_login",
         )

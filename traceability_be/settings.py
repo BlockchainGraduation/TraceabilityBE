@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "grow_up_image",
     "user",
     "product",
+    "comment",
     "growup",
     "transaction",
 ]
@@ -61,6 +62,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "product.middleware.CustomExceptionHandlerMiddleware",
 ]
 
 ROOT_URLCONF = "traceability_be.urls"
@@ -152,7 +154,7 @@ AUTH_USER_MODEL = "user.User"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    )
+    ),
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -201,6 +203,8 @@ SWAGGER_SETTINGS = {
     # 'USE_SESSION_AUTH':False
 }
 # Send mail
+# ADMINS = (("Your Name", "duongtrungqb12@gmail.com"),)
+# OSCAR_FROM_EMAIL = "SimpRaidenEi"
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = "587"
