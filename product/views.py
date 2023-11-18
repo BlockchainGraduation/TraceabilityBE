@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 from rest_framework import permissions
 from rest_framework import generics
 from drf_yasg.utils import swagger_auto_schema
@@ -59,8 +60,9 @@ class ProductViews(viewsets.ModelViewSet):
 
 
 class ProductTypeViews(generics.ListAPIView):
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["product_type", "name"]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ["product_type"]
+    search_fields = ["name", "price"]
     queryset = Product.objects.all()
     serializer_class = SimpleProductSerializers
 
@@ -79,6 +81,12 @@ class ProductTypeViews(generics.ListAPIView):
                 in_=openapi.IN_QUERY,
                 description="Lọc name",
                 type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "price",
+                in_=openapi.IN_QUERY,
+                description="Lọc giá",
+                type=openapi.TYPE_INTEGER,
             ),
             # Các tham số khác nếu cần
         ],

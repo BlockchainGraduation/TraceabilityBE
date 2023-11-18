@@ -14,7 +14,7 @@ class Product(models.Model):
     transaction_id = models.ForeignKey(
         "transaction.Transaction", on_delete=models.PROTECT, null=True, default=None
     )
-    name = models.CharField(unique=True)
+    name = models.CharField()
     avatar = models.ImageField(upload_to="traceability/", blank=True)
     description = models.TextField()
     # banner = models.ManyToManyField("image.Image")
