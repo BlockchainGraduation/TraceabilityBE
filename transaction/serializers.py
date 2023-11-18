@@ -2,12 +2,19 @@ from rest_framework import serializers
 from .models import Transaction
 from product.models import Product
 from user.models import User
+from product.serializers import ProductSerializers
+
+# from user.serializers import ResponseUserDetailSerializer
 
 
 class TransactionSerializer(serializers.ModelSerializer):
+    product_id = ProductSerializers(read_only=True)
+    # create_by = ResponseUserDetailSerializer(read_only=True)
+
     class Meta:
         model = Transaction
         fields = "__all__"
+        lookup_field = "product_id"
         extra_kwargs = {
             "create_by": {"read_only": True},
         }

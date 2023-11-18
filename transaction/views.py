@@ -23,9 +23,9 @@ class TransactionView(generics.CreateAPIView, generics.ListAPIView):
         # super().create(request, *args, **kwargs)
         product = Product.objects.filter(pk=request.data["product_id"]).first()
         if product:
-            if product.quantity <= request.data["product_id"]:
+            if product.quantity >= request.data["product_id"]:
                 return super().create(request, *args, **kwargs)
-        return Response({"message": "Loi"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "DATA_INVALID"}, status=status.HTTP_400_BAD_REQUEST)
 
     def get_permissions(self):
         if self.request.method == "POST":

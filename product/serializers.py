@@ -12,12 +12,47 @@ from growup.serializers import GrowUpSerializers
 from comment.serializers import CommentSerializers
 from rest_framework.fields import ListField
 
+# from user.serializers import ResponseUserSerializer
+
+# from transaction.serializers import TransactionSerializer
+
 
 # @parser_classes((MultiPartParser,))
+class TrackListingField(serializers.RelatedField):
+    def to_representation(self, value):
+        from user.serializers import ResponseUserSerializer
+
+        return ResponseUserSerializer(value).data
+
+
+class SimpleProductSerializers(serializers.ModelSerializer):
+    banner = ProductImageSerializers(many=True, read_only=True)
+    create_by = TrackListingField(read_only=True)
+    # uploaded_images = serializers.ListField(
+    #     child=serializers.ImageField(
+    #         max_length=1000000, allow_empty_file=False, use_url=False
+    #     ),
+    #     write_only=True,
+    # )
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+        extra_kwargs = {
+            "create_by": {"read_only": True},
+        }
+        depth = 10
+
+
 class ProductSerializers(serializers.ModelSerializer):
+    # from user.serializers import ResponseUserSerializer
+
     banner = ProductImageSerializers(many=True, read_only=True)
     growup = GrowUpSerializers(many=True, read_only=True)
     comments = CommentSerializers(many=True, read_only=True)
+    create_by = TrackListingField(read_only=True)
+    # transaction_id = TransactionSerializer(read_only=True)
+
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(
             max_length=1000000, allow_empty_file=False, use_url=False

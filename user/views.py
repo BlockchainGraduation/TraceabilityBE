@@ -180,7 +180,7 @@ class RegisterView(APIView):
                 otp = generate_otp()
                 send_otp_email(serializer.data["email"], otp)
                 User.objects.create(
-                    **serializer.data, fullname=serializer.data["email"], otp=otp
+                    **serializer.data, fullname=serializer.data["username"], otp=otp
                 )
                 # serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -189,14 +189,37 @@ class RegisterView(APIView):
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+    permission_classes = [AllowAny]
 
     @swagger_auto_schema(tags=["auth"], operation_summary="User Login")
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         # access = response.data['access']
+        # print(request.data["username"])
+        user = User.objects.filter(username=request.data["username"]).first()
+        response.data = {
+            "access": response.data["access"],
+            "refresh": response.data["refresh"],
+            "user": ResponseUserSerializer(user).data,
+        }
         response.set_cookie("access", response.data["access"], httponly=False)
         response.set_cookie("refresh", response.data["refresh"], httponly=False)
         return response
+
+
+class GetMeView(APIView):
+    serializer_class = MyTokenObtainPairSerializer
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(tags=["user"], operation_summary="User Me")
+    def get(self, request, *args, **kwargs):
+        # response = super().post(request, *args, **kwargs)
+
+        # user = User.objects.filter(username=request.data["username"]).first()
+        return Response(
+            {"user": ResponseUserSerializer(request.user).data},
+            status=status.HTTP_202_ACCEPTED,
+        )
 
 
 class MyTokenRefreshView(TokenRefreshView):
