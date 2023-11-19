@@ -1,7 +1,11 @@
 from django.shortcuts import render
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, generics
 from .models import Comment
-from .serializers import CommentSerializers
+from .serializers import CommentSerializers, DetailCommentSerializers
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 
 
 # Create your views here.
@@ -27,3 +31,33 @@ class CommentView(viewsets.ModelViewSet):
         if self.action == "create":
             return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]
+
+
+class GetFilterCommentView(generics.ListAPIView):
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["product_id"]
+    # search_fields = ["product_id", "user_id"]
+    queryset = Comment.objects.all()
+    serializer_class = DetailCommentSerializers
+
+    @swagger_auto_schema(
+        tags=["comment"],
+        operation_summary="Filter Comment",
+        manual_parameters=[
+            openapi.Parameter(
+                "product_id",
+                in_=openapi.IN_QUERY,
+                description="Lọc theo product",
+                type=openapi.TYPE_INTEGER,
+            ),
+            # openapi.Parameter(
+            #     "user_id",
+            #     in_=openapi.IN_QUERY,
+            #     description="Lọc theo user",
+            #     type=openapi.TYPE_INTEGER,
+            # ),
+            # Các tham số khác nếu cần
+        ],
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)

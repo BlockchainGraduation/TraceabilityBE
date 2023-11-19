@@ -61,7 +61,7 @@ class ProductViews(viewsets.ModelViewSet):
 
 class ProductTypeViews(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ["product_type"]
+    filterset_fields = ["product_type", "create_by"]
     search_fields = ["name", "price"]
     queryset = Product.objects.all()
     serializer_class = SimpleProductSerializers

@@ -1,11 +1,14 @@
 from django.urls import include, path
+from . import views
 from rest_framework.routers import DefaultRouter
-from .views import CommentView, GetFilterCommentView
 
 router = DefaultRouter()
-router.register(r"", CommentView, basename="growup")
+router.register(
+    r"detai_description",
+    views.DetailDescriptionView,
+    basename="detai_description",
+)
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("filter-comment", GetFilterCommentView.as_view()),
 ]

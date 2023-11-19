@@ -7,7 +7,16 @@ from drf_yasg.utils import swagger_auto_schema
 from .models import Transaction
 from .serializers import TransactionSerializer
 from product.models import Product
-from user.models import User
+from user.models import User, FISHERMEN, FACTORY, SEEDLING
+
+
+def check_accept_create_product(request, product_type):
+    if request.user.role == FISHERMEN and product_type == SEEDLING:
+        return True
+    if request.user.role == FACTORY and product_type == FISHERMEN:
+        return True
+    return False
+
 
 # Create your views here.
 
@@ -20,11 +29,19 @@ class TransactionView(generics.CreateAPIView, generics.ListAPIView):
     # lookup_field = "id"
 
     def create(self, request, *args, **kwargs):
+        request.data["product_id"]
         # super().create(request, *args, **kwargs)
         product = Product.objects.filter(pk=request.data["product_id"]).first()
         if product:
-            if product.quantity >= request.data["product_id"]:
-                return super().create(request, *args, **kwargs)
+            if check_accept_create_product(
+                request=request, product_type=product.product_type
+            ):
+                if product.quantity >= request.data["quantity"]:
+                    return super().create(request, *args, **kwargs)
+            else:
+                return Response(
+                    {"message": "NOT_ALLOWED"}, status=status.HTTP_400_BAD_REQUEST
+                )
         return Response({"message": "DATA_INVALID"}, status=status.HTTP_400_BAD_REQUEST)
 
     def get_permissions(self):

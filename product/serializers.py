@@ -3,14 +3,16 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from .models import Product
-from user.models import User, SEEDLING_COMPANY
+from user.models import User, SEEDLING
 from rest_framework.decorators import parser_classes
 from rest_framework.parsers import MultiPartParser
 from product_image.serializers import ProductImageSerializers
 from product_image.models import ProductImage
 from growup.serializers import GrowUpSerializers
+from detail_description.serializers import DeitaiDescriptionSerializers
 from comment.serializers import CommentSerializers
 from rest_framework.fields import ListField
+
 
 # from user.serializers import ResponseUserSerializer
 
@@ -18,16 +20,30 @@ from rest_framework.fields import ListField
 
 
 # @parser_classes((MultiPartParser,))
-class TrackListingField(serializers.RelatedField):
+class TrackListingProductField(serializers.RelatedField):
+    def to_representation(self, value):
+        from user.serializers import SimpleProductSerializers
+
+        return SimpleProductSerializers(value).data
+
+
+class TrackListingUserField(serializers.RelatedField):
     def to_representation(self, value):
         from user.serializers import ResponseUserSerializer
 
         return ResponseUserSerializer(value).data
 
 
+class TrackListingTransactionField(serializers.RelatedField):
+    def to_representation(self, value):
+        from transaction.serializers import TransactionSerializer
+
+        return TransactionSerializer(value).data
+
+
 class SimpleProductSerializers(serializers.ModelSerializer):
     banner = ProductImageSerializers(many=True, read_only=True)
-    create_by = TrackListingField(read_only=True)
+    create_by = TrackListingUserField(read_only=True)
     # uploaded_images = serializers.ListField(
     #     child=serializers.ImageField(
     #         max_length=1000000, allow_empty_file=False, use_url=False
@@ -41,7 +57,7 @@ class SimpleProductSerializers(serializers.ModelSerializer):
         extra_kwargs = {
             "create_by": {"read_only": True},
         }
-        depth = 10
+        # depth = 10
 
 
 class ProductSerializers(serializers.ModelSerializer):
@@ -50,8 +66,9 @@ class ProductSerializers(serializers.ModelSerializer):
     banner = ProductImageSerializers(many=True, read_only=True)
     growup = GrowUpSerializers(many=True, read_only=True)
     comments = CommentSerializers(many=True, read_only=True)
-    create_by = TrackListingField(read_only=True)
-    # transaction_id = TransactionSerializer(read_only=True)
+    detail_decriptions = DeitaiDescriptionSerializers(many=True, read_only=True)
+    create_by = TrackListingUserField(read_only=True)
+    transaction_id = TrackListingTransactionField(read_only=True)
 
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(
@@ -66,9 +83,10 @@ class ProductSerializers(serializers.ModelSerializer):
         extra_kwargs = {
             "create_by": {"read_only": True},
         }
+        depth = 10
 
     def create(self, validated_data):
-        if self.context["request"].user.role != SEEDLING_COMPANY:
+        if self.context["request"].user.role != SEEDLING:
             checktransaction_id = validated_data.get("transaction_id", None)
             if checktransaction_id is None:
                 raise APIException(

@@ -2,14 +2,16 @@ from rest_framework import serializers
 from .models import Transaction
 from product.models import Product
 from user.models import User
-from product.serializers import ProductSerializers
+from product.serializers import SimpleProductSerializers, ProductSerializers
+from user.serializers import ResponseUserSerializer
+from product.serializers import TrackListingProductField
+
 
 # from user.serializers import ResponseUserDetailSerializer
 
 
 class TransactionSerializer(serializers.ModelSerializer):
-    product_id = ProductSerializers(read_only=True)
-    # create_by = ResponseUserDetailSerializer(read_only=True)
+    create_by = ResponseUserSerializer(read_only=True)
 
     class Meta:
         model = Transaction

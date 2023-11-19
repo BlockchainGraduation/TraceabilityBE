@@ -1,7 +1,7 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import serializers
-from product.serializers import ProductSerializers
+from product.serializers import ProductSerializers, SimpleProductSerializers
 from .models import User
 from .utils import generate_otp, send_otp_email
 
@@ -85,7 +85,7 @@ class ResetPasswordSerializer(serializers.Serializer):
 
 
 class ResponseUserDetailSerializer(serializers.ModelSerializer):
-    product = ProductSerializers(many=True, read_only=True)
+    product = SimpleProductSerializers(many=True, read_only=True)
 
     class Meta:
         model = User
