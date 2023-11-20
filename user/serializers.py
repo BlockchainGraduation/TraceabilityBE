@@ -2,6 +2,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import serializers
 from product.serializers import ProductSerializers, SimpleProductSerializers
+from user_image.serializers import UserImageSerializers
 from .models import User
 from .utils import generate_otp, send_otp_email
 
@@ -93,6 +94,8 @@ class ResponseUserDetailSerializer(serializers.ModelSerializer):
 
 
 class ResponseUserSerializer(serializers.ModelSerializer):
+    user_banner = UserImageSerializers(many=True, read_only=True)
+
     class Meta:
         model = User
         exclude = ["user_permissions", "groups", "password", "otp"]

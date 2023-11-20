@@ -22,7 +22,7 @@ from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from .models import User, PENDING
 from product.models import Product
-from product.serializers import ProductSerializers
+from product.serializers import ProductSerializers, SimpleProductSerializers
 from .utils import generate_otp, send_otp_email
 
 
@@ -308,7 +308,7 @@ class GetUserView(APIView):
             return Response(
                 {
                     "user": ResponseUserSerializer(user).data,
-                    "products": ProductSerializers(product, many=True).data,
+                    "products": SimpleProductSerializers(product, many=True).data,
                 },
                 status=status.HTTP_200_OK,
             )

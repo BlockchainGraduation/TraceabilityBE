@@ -29,9 +29,31 @@ class IsOwnerProduct(permissions.BasePermission):
     #     return True
 
 
+class ProductMeViews(generics.ListAPIView):
+    queryset = Product.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    serializer_class = SimpleProductSerializers
+    filterset_fields = ["create_by"]
+
+    @swagger_auto_schema(
+        tags=["product"],
+        operation_summary="Product me",
+        manual_parameters=[
+            openapi.Parameter(
+                "create_by",
+                in_=openapi.IN_QUERY,
+                description="Lọc product theo user",
+                type=openapi.TYPE_STRING,
+            )
+        ],
+    )
+    def get(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+
 # Create your views here.
 class ProductViews(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
+    queryset = Product.objects.filter(active=True)
     serializer_class = ProductSerializers
     simple_serializer_class = SimpleProductSerializers
 
@@ -63,7 +85,7 @@ class ProductTypeViews(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ["product_type", "create_by"]
     search_fields = ["name", "price"]
-    queryset = Product.objects.all()
+    queryset = Product.objects.filter(active=True)
     serializer_class = SimpleProductSerializers
 
     @swagger_auto_schema(

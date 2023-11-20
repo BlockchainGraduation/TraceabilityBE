@@ -11,4 +11,8 @@ urlpatterns = [
         "filter-product/",
         views.ProductTypeViews.as_view(),
     ),
+    path(
+        "product-me/",
+        views.ProductMeViews.as_view(),
+    ),
 ]
