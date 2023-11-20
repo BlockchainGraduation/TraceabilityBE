@@ -53,7 +53,7 @@ class ProductMeViews(generics.ListAPIView):
 
 # Create your views here.
 class ProductViews(viewsets.ModelViewSet):
-    queryset = Product.objects.filter(active=True)
+    # queryset = Product.objects.filter()
     serializer_class = ProductSerializers
     simple_serializer_class = SimpleProductSerializers
 
@@ -61,6 +61,11 @@ class ProductViews(viewsets.ModelViewSet):
     # def create(self, request, *args, **kwargs):
     #     image = Image.objects.create(request.FILES)
     #     return super().create(request, *args, **kwargs)
+
+    def get_queryset(self):
+        if self.action == "list" or self.action == "retrieve":
+            return Product.objects.filter(active=True)
+        return Product.objects.all()
 
     def get_permissions(self):
         if (
