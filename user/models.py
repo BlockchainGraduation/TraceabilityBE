@@ -44,6 +44,7 @@ class User(AbstractUser):
     phone = models.TextField(null=True, default=None)
     wallet_address = models.CharField(max_length=100, null=True, default=None)
     geographical_address = models.CharField(max_length=100, null=True, default="")
+    introduce = models.TextField(default=None, null=True)
     role = models.CharField(choices=ROLE_CHOICE, default=MEMBER)
     otp = models.CharField(max_length=6, null=True, blank=True)
     link = models.JSONField(default=dict)

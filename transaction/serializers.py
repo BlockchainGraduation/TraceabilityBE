@@ -19,6 +19,8 @@ class TransactionSerializer(serializers.ModelSerializer):
         lookup_field = "product_id"
         extra_kwargs = {
             "create_by": {"read_only": True},
+            # "active": {"read_only": True},
+            # "is_reject": {"read_only": True},
         }
 
     def create(self, validated_data):

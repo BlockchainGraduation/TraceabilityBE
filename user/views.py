@@ -67,14 +67,16 @@ class ConfirmOTP(APIView):
                 return Response(
                     {"detail": "WRONG_OTP"}, status=status.HTTP_400_BAD_REQUEST
                 )
-        return Response({"detail": serializer.errors})
+        return Response(
+            {"detail": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class ForgetView(APIView):
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
-        request_body=ConfirmOTPSerializer,
+        request_body=ForgetSerializer,
         tags=["auth"],
         operation_summary="User Forget Password",
     )
@@ -276,6 +278,7 @@ class UserView(APIView):
 
 
 class UpdateUserView(generics.RetrieveUpdateAPIView):
+    # queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = UpdateUserSerializer
 
@@ -293,8 +296,8 @@ class UpdateUserView(generics.RetrieveUpdateAPIView):
         )
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response({serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GetUserView(APIView):

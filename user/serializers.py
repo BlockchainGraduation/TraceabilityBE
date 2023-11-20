@@ -3,6 +3,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import serializers
 from product.serializers import ProductSerializers, SimpleProductSerializers
 from user_image.serializers import UserImageSerializers
+from user_image.models import UserImage
 from .models import User
 from .utils import generate_otp, send_otp_email
 
@@ -109,6 +110,15 @@ class ResponseUserSerializer(serializers.ModelSerializer):
 
 
 class UpdateUserSerializer(serializers.ModelSerializer):
+    user_banner = UserImageSerializers(many=True, read_only=True)
+    uploaded_images = serializers.ListField(
+        child=serializers.ImageField(
+            max_length=None, allow_empty_file=False, use_url=False
+        ),
+        write_only=True,
+        max_length=8,
+    )
+
     class Meta:
         model = User
         # fields =
@@ -129,3 +139,13 @@ class UpdateUserSerializer(serializers.ModelSerializer):
             "username",
             "last_login",
         )
+
+    def update(self, instance, validated_data):
+        if self.initial_data.get("uploaded_images") is None:
+            return super().update(instance, validated_data)
+        uploaded_images = validated_data.pop("uploaded_images")
+        user = User.objects.filter(pk=instance.pk).first()
+        UserImage.objects.filter(user=user).delete()
+        for image in uploaded_images:
+            UserImage.objects.create(user=user, image=image)
+        return super().update(instance, validated_data)

@@ -10,7 +10,8 @@ class Transaction(models.Model):
     product_id = models.ForeignKey("product.Product", on_delete=models.PROTECT)
     quantity = models.IntegerField()
     price = models.IntegerField()
-    status = models.CharField()
+    active = models.BooleanField(default=False)
+    is_reject = models.BooleanField(default=False)
     create_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
