@@ -4,6 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions, status
 from drf_yasg.utils import swagger_auto_schema
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg import openapi
 from .models import Transaction
 from .serializers import TransactionSerializer, ChangeStatusTransactionSerializer
 from product.models import Product
@@ -24,9 +26,34 @@ def check_accept_create_product(request, product_type):
 from rest_framework import generics
 
 
+class FilterTransactionViews(generics.ListAPIView):
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["product_id"]
+    queryset = Transaction.objects.all()
+    serializer_class = TransactionSerializer
+    # serializer_class = TransactionSerializer
+
+    @swagger_auto_schema(
+        tags=["transaction"],
+        operation_summary="Filter Product",
+        manual_parameters=[
+            openapi.Parameter(
+                "product_id",
+                in_=openapi.IN_QUERY,
+                description="Lọc theo product_id",
+                type=openapi.TYPE_STRING,
+            )
+        ],
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+
 class TransactionMeView(generics.ListAPIView):
     # lookup_field = "product_id"
+    filter_backends = None
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = TransactionSerializer
 
     def get(self, request, *args, **kwargs):
         transactions = Transaction.objects.filter(

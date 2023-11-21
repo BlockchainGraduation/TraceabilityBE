@@ -44,6 +44,11 @@ class TrackListingTransactionField(serializers.RelatedField):
 class SimpleProductSerializers(serializers.ModelSerializer):
     banner = ProductImageSerializers(many=True, read_only=True)
     create_by = TrackListingUserField(read_only=True)
+    total_transaction = serializers.SerializerMethodField(read_only=True)
+
+    def get_total_transaction(self, product):
+        return product.transaction_product.count()
+
     # uploaded_images = serializers.ListField(
     #     child=serializers.ImageField(
     #         max_length=1000000, allow_empty_file=False, use_url=False
@@ -87,7 +92,7 @@ class ProductSerializers(serializers.ModelSerializer):
     comments = CommentSerializers(many=True, read_only=True)
     detail_decriptions = DeitaiDescriptionSerializers(many=True, read_only=True)
     create_by = TrackListingUserField(read_only=True)
-    # transaction_id = TrackListingTransactionField(read_only=True)
+    # transaction_id = serializers.StringRelatedField(many=True)
 
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(
