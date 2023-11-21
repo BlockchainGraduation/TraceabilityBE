@@ -9,7 +9,11 @@ from rest_framework import permissions
 from rest_framework import generics
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .serializers import ProductSerializers, SimpleProductSerializers
+from .serializers import (
+    ProductSerializers,
+    SimpleProductSerializers,
+    DetailProductSerializers,
+)
 from .models import Product
 from user.models import User
 
@@ -56,6 +60,7 @@ class ProductViews(viewsets.ModelViewSet):
     # queryset = Product.objects.filter()
     serializer_class = ProductSerializers
     simple_serializer_class = SimpleProductSerializers
+    detail_serializer_class = DetailProductSerializers
 
     # permission_classes = [IsOwner]
     # def create(self, request, *args, **kwargs):
@@ -82,6 +87,9 @@ class ProductViews(viewsets.ModelViewSet):
         if self.action == "list":
             if hasattr(self, "simple_serializer_class"):
                 return self.simple_serializer_class
+        if self.action == "retrieve":
+            if hasattr(self, "detail_serializer_class"):
+                return self.detail_serializer_class
 
         return super(viewsets.ModelViewSet, self).get_serializer_class()
 
