@@ -9,7 +9,7 @@ class GrowUpSerializers(serializers.ModelSerializer):
     growup_images = GrowUpImageSerializers(many=True, read_only=True)
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(
-            max_length=1000, allow_empty_file=False, use_url=False
+            max_length=10000, allow_empty_file=False, use_url=False
         ),
         write_only=True,
     )

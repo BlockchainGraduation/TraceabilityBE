@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from .models import Product
-from user.models import User, SEEDLING
+from user.models import User, FACTORY
 from rest_framework.decorators import parser_classes
 from rest_framework.parsers import MultiPartParser
 from product_image.serializers import ProductImageSerializers
@@ -56,8 +56,34 @@ class SimpleProductSerializers(serializers.ModelSerializer):
         fields = "__all__"
         extra_kwargs = {
             "create_by": {"read_only": True},
+            # "active": {"read_only": True},
         }
         # depth = 10
+
+
+class DetailProductSerializers(serializers.ModelSerializer):
+    banner = ProductImageSerializers(many=True, read_only=True)
+    growup = GrowUpSerializers(many=True, read_only=True)
+    comments = CommentSerializers(many=True, read_only=True)
+    detail_decriptions = DeitaiDescriptionSerializers(many=True, read_only=True)
+    create_by = TrackListingUserField(read_only=True)
+    transaction_id = TrackListingTransactionField(read_only=True)
+
+    uploaded_images = serializers.ListField(
+        child=serializers.ImageField(
+            max_length=1000000, allow_empty_file=False, use_url=False
+        ),
+        write_only=True,
+    )
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+        extra_kwargs = {
+            "create_by": {"read_only": True},
+            "active": {"read_only": True},
+        }
+        depth = 10
 
 
 class ProductSerializers(serializers.ModelSerializer):
@@ -82,11 +108,12 @@ class ProductSerializers(serializers.ModelSerializer):
         fields = "__all__"
         extra_kwargs = {
             "create_by": {"read_only": True},
+            "active": {"read_only": True},
         }
         depth = 10
 
     def create(self, validated_data):
-        if self.context["request"].user.role != SEEDLING:
+        if self.context["request"].user.role != FACTORY:
             checktransaction_id = validated_data.get("transaction_id", None)
             if checktransaction_id is None:
                 raise APIException(

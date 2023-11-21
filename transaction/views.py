@@ -7,13 +7,13 @@ from drf_yasg.utils import swagger_auto_schema
 from .models import Transaction
 from .serializers import TransactionSerializer
 from product.models import Product
-from user.models import User, FISHERMEN, FACTORY, SEEDLING
+from user.models import User, RETAILER, FACTORY, DISTRIBUTER
 
 
 def check_accept_create_product(request, product_type):
-    if request.user.role == FISHERMEN and product_type == SEEDLING:
+    if request.user.role == DISTRIBUTER and product_type == FACTORY:
         return True
-    if request.user.role == FACTORY and product_type == FISHERMEN:
+    if request.user.role == RETAILER and product_type == FACTORY:
         return True
     return False
 
