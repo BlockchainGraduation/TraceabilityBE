@@ -10,6 +10,10 @@ from product.serializers import TrackListingProductField
 # from user.serializers import ResponseUserDetailSerializer
 
 
+class ChangeStatusTransactionSerializer(serializers.Serializer):
+    status = serializers.BooleanField(write_only=True)
+
+
 class TransactionSerializer(serializers.ModelSerializer):
     create_by = ResponseUserSerializer(read_only=True)
 

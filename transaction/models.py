@@ -7,7 +7,9 @@ from django.db import models
 
 class Transaction(models.Model):
     create_by = models.ForeignKey("user.User", on_delete=models.PROTECT)
-    product_id = models.ForeignKey("product.Product", on_delete=models.PROTECT)
+    product_id = models.ForeignKey(
+        "product.Product", related_name="transaction_product", on_delete=models.PROTECT
+    )
     quantity = models.IntegerField()
     price = models.IntegerField()
     active = models.BooleanField(default=False)

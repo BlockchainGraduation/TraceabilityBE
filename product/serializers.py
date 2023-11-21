@@ -69,13 +69,6 @@ class DetailProductSerializers(serializers.ModelSerializer):
     create_by = TrackListingUserField(read_only=True)
     transaction_id = TrackListingTransactionField(read_only=True)
 
-    uploaded_images = serializers.ListField(
-        child=serializers.ImageField(
-            max_length=1000000, allow_empty_file=False, use_url=False
-        ),
-        write_only=True,
-    )
-
     class Meta:
         model = Product
         fields = "__all__"
@@ -94,7 +87,7 @@ class ProductSerializers(serializers.ModelSerializer):
     comments = CommentSerializers(many=True, read_only=True)
     detail_decriptions = DeitaiDescriptionSerializers(many=True, read_only=True)
     create_by = TrackListingUserField(read_only=True)
-    transaction_id = TrackListingTransactionField(read_only=True)
+    # transaction_id = TrackListingTransactionField(read_only=True)
 
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(
@@ -110,7 +103,6 @@ class ProductSerializers(serializers.ModelSerializer):
             "create_by": {"read_only": True},
             "active": {"read_only": True},
         }
-        depth = 10
 
     def create(self, validated_data):
         if self.context["request"].user.role != FACTORY:

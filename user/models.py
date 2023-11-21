@@ -47,9 +47,11 @@ class User(AbstractUser):
     role = models.CharField(choices=ROLE_CHOICE, default=MEMBER)
     otp = models.CharField(max_length=6, null=True, blank=True)
     link = models.JSONField(default=dict)
+    account_balance = models.BigIntegerField(default=0)
     confirm_status = models.CharField(choices=CONFIRM_CHOICE, default=NONE)
     survey = models.JSONField(default=dict)
     is_active = models.BooleanField(default=False)
+    is_delete = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return self.username

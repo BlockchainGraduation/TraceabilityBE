@@ -69,8 +69,8 @@ class ProductViews(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.action == "list" or self.action == "retrieve":
-            return Product.objects.filter(active=True)
-        return Product.objects.all()
+            return Product.objects.filter(active=True, is_delete=False)
+        return Product.objects.all(is_delete=False)
 
     def get_permissions(self):
         if (
@@ -98,7 +98,7 @@ class ProductTypeViews(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ["product_type", "create_by"]
     search_fields = ["name", "price"]
-    queryset = Product.objects.filter(active=True)
+    queryset = Product.objects.filter(active=True, is_delete=False)
     serializer_class = SimpleProductSerializers
 
     @swagger_auto_schema(

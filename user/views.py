@@ -198,7 +198,13 @@ class MyTokenObtainPairView(TokenObtainPairView):
         response = super().post(request, *args, **kwargs)
         # access = response.data['access']
         # print(request.data["username"])
-        user = User.objects.filter(username=request.data["username"]).first()
+        user = User.objects.filter(
+            username=request.data["username"], is_delete=False
+        ).first()
+        if user is None:
+            response.data = {"ACCOUNT_DELETED"}
+            response.status_code = status.HTTP_423_LOCKED
+            return response
         response.data = {
             "access": response.data["access"],
             "refresh": response.data["refresh"],
@@ -216,7 +222,11 @@ class GetMeView(APIView):
     @swagger_auto_schema(tags=["user"], operation_summary="User Me")
     def get(self, request, *args, **kwargs):
         # response = super().post(request, *args, **kwargs)
-
+        if request.user.is_delete:
+            return Response(
+                {"detail": "ACCOUNT_DELETED"},
+                status=status.HTTP_423_LOCKED,
+            )
         # user = User.objects.filter(username=request.data["username"]).first()
         return Response(
             {"user": ResponseUserSerializer(request.user).data},
