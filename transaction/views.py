@@ -6,7 +6,7 @@ from rest_framework import permissions, status
 from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
-from .models import Transaction
+from .models import Transaction, PENDDING, REJECT, ACCEPT, DONE
 from .serializers import TransactionSerializer, ChangeStatusTransactionSerializer
 from product.models import Product
 from product.serializers import SimpleProductSerializers
@@ -28,7 +28,7 @@ from rest_framework import generics
 
 class FilterTransactionViews(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["product_id"]
+    filterset_fields = ["status", "product_id"]
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
     # serializer_class = TransactionSerializer
@@ -42,7 +42,13 @@ class FilterTransactionViews(generics.ListAPIView):
                 in_=openapi.IN_QUERY,
                 description="Lọc theo product_id",
                 type=openapi.TYPE_STRING,
-            )
+            ),
+            openapi.Parameter(
+                "status",
+                in_=openapi.IN_QUERY,
+                description="Lọc theo status",
+                type=openapi.TYPE_STRING,
+            ),
         ],
     )
     def get(self, request, *args, **kwargs):
@@ -51,16 +57,27 @@ class FilterTransactionViews(generics.ListAPIView):
 
 class TransactionMeView(generics.ListAPIView):
     # lookup_field = "product_id"
-    filter_backends = None
+    queryset = Transaction.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["status"]
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = TransactionSerializer
 
+    @swagger_auto_schema(
+        tags=["transaction"],
+        operation_summary="Filter Product",
+        manual_parameters=[
+            openapi.Parameter(
+                "status",
+                in_=openapi.IN_QUERY,
+                description="Lọc theo status",
+                type=openapi.TYPE_STRING,
+            ),
+        ],
+    )
     def get(self, request, *args, **kwargs):
         transactions = Transaction.objects.filter(
-            # desc__contains=filter,
             product_id__create_by=request.user.pk,
-            active=False,
-            is_reject=False,
         )
         return Response(
             TransactionSerializer(transactions, many=True).data,
@@ -128,7 +145,7 @@ class ChangeStatusTransactionView(APIView):
             if is_accept is True:
                 if product.quantity > transaction.quantity:
                     product.quantity = product.quantity - transaction.quantity
-                    transaction.active = True
+                    transaction.status = ACCEPT
                     product.save()
                     transaction.save()
                     return Response({"detail": "DONE"}, status=status.HTTP_202_ACCEPTED)
@@ -138,7 +155,9 @@ class ChangeStatusTransactionView(APIView):
                         status=status.HTTP_406_NOT_ACCEPTABLE,
                     )
             else:
-                transaction.is_reject = True
+                transaction.status = REJECT
                 transaction.save()
                 return Response({"detail": "OK"}, status=status.HTTP_202_ACCEPTED)
-        return Response({"detail": "Loi"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"detail": "PRODUCT_NOT_EXISTS"}, status=status.HTTP_400_BAD_REQUEST
+        )

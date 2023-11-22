@@ -106,7 +106,7 @@ class ProductSerializers(serializers.ModelSerializer):
         fields = "__all__"
         extra_kwargs = {
             "create_by": {"read_only": True},
-            "active": {"read_only": True},
+            # "active": {"rea   d_only": True},
         }
 
     def create(self, validated_data):

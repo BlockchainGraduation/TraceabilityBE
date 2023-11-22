@@ -24,7 +24,6 @@ class Product(models.Model):
     # product_status = models.CharField()
     active = models.BooleanField(default=False)
     is_delete = models.BooleanField(default=False)
-
     create_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
