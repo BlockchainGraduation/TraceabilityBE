@@ -14,6 +14,21 @@ class ChangeStatusTransactionSerializer(serializers.Serializer):
     status = serializers.BooleanField(write_only=True)
 
 
+class DetailTransactionSerializer(serializers.ModelSerializer):
+    create_by = ResponseUserSerializer(read_only=True)
+    product_id = SimpleProductSerializers(read_only=True)
+
+    class Meta:
+        model = Transaction
+        fields = "__all__"
+        lookup_field = "product_id"
+        extra_kwargs = {
+            "create_by": {"read_only": True},
+            "active": {"read_only": True},
+            # "is_reject": {"read_only": True},
+        }
+
+
 class TransactionSerializer(serializers.ModelSerializer):
     create_by = ResponseUserSerializer(read_only=True)
 

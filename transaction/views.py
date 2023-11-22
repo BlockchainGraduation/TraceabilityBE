@@ -7,7 +7,11 @@ from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from .models import Transaction, PENDDING, REJECT, ACCEPT, DONE
-from .serializers import TransactionSerializer, ChangeStatusTransactionSerializer
+from .serializers import (
+    TransactionSerializer,
+    ChangeStatusTransactionSerializer,
+    DetailTransactionSerializer,
+)
 from product.models import Product
 from product.serializers import SimpleProductSerializers
 from user.models import User, RETAILER, FACTORY, DISTRIBUTER
@@ -58,10 +62,10 @@ class FilterTransactionViews(generics.ListAPIView):
 class TransactionMeView(generics.ListAPIView):
     # lookup_field = "product_id"
     queryset = Transaction.objects.all()
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["status"]
+    # filter_backends = [DjangoFilterBackend]
+    # filterset_fields = ["status"]
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = TransactionSerializer
+    serializer_class = DetailTransactionSerializer
 
     @swagger_auto_schema(
         tags=["transaction"],
@@ -76,11 +80,22 @@ class TransactionMeView(generics.ListAPIView):
         ],
     )
     def get(self, request, *args, **kwargs):
-        transactions = Transaction.objects.filter(
-            product_id__create_by=request.user.pk,
-        )
+        transaction_status = request.GET.get("status", None)
+
+        if transaction_status is None:
+            transactions = Transaction.objects.filter(
+                create_by=request.user.pk
+                # product_id__create_by=request.user.pk,
+            )
+        else:
+            transactions = Transaction.objects.filter(
+                create_by=request.user.pk,
+                status=transaction_status
+                # product_id__create_by=request.user.pk,
+            )
+
         return Response(
-            TransactionSerializer(transactions, many=True).data,
+            DetailTransactionSerializer(transactions, many=True).data,
             status=status.HTTP_202_ACCEPTED,
         )
 
@@ -118,7 +133,7 @@ class TransactionView(generics.CreateAPIView, generics.ListAPIView):
 
 class RetrieveTransactionView(generics.RetrieveAPIView):
     queryset = Transaction.objects.all()
-    serializer_class = TransactionSerializer
+    serializer_class = DetailTransactionSerializer
 
     # lookup_field = "id"
     @swagger_auto_schema(tags=["transaction"], operation_summary="Get Transaction")
