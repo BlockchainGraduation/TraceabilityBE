@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "growup",
     "transaction",
     "detail_description",
+    "cart",
 ]
 
 MIDDLEWARE = [

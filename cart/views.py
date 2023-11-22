@@ -1,10 +1,37 @@
 from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
-from rest_framework import permissions
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from rest_framework.views import APIView
+from rest_framework import permissions, status
+from rest_framework.response import Response
 from .models import Cart
-from .serializers import CartSerializers
+from .serializers import CartSerializers, DetailCartSerializers
 
 # Create your views here.
+
+
+class CartMeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        tags=["cart"],
+        operation_summary="Cart me",
+        # manual_parameters=[
+        #     openapi.Parameter(
+        #         "status",
+        #         in_=openapi.IN_QUERY,
+        #         description="Lọc theo status",
+        #         type=openapi.TYPE_STRING,
+        #     ),
+        # ],
+    )
+    def get(self, request, *args, **kwargs):
+        transactions = Cart.objects.filter(create_by=request.user.pk)
+        return Response(
+            DetailCartSerializers(transactions, many=True).data,
+            status=status.HTTP_202_ACCEPTED,
+        )
 
 
 class CartView(ModelViewSet):
@@ -18,5 +45,5 @@ class CartView(ModelViewSet):
             or self.action == "update"
             or self.action == "destroy"
         ):
-            return [permissions.IsAuthenticated]
-        return [permissions.AllowAny]
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
