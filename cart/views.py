@@ -8,7 +8,17 @@ from rest_framework.response import Response
 from .models import Cart
 from .serializers import CartSerializers, DetailCartSerializers
 
+
 # Create your views here.
+class IsOwnerCart(permissions.BasePermission):
+    def has_permission(self, request, view):
+        pk = view.kwargs["pk"]
+        # print(view.kwargs["pk"])
+        # print(view.kwargs["pk"])
+        # print("user", request.user.id)
+        # superuser = request.user.is_superuser
+        cart = Cart.objects.filter(pk=pk, create_by=request.user.id).first()
+        return True if cart else False
 
 
 class CartMeView(APIView):
@@ -39,11 +49,13 @@ class CartView(ModelViewSet):
     serializer_class = CartSerializers
 
     def get_permissions(self):
-        if (
-            self.action == "create"
-            or self.action == "partial_update"
-            or self.action == "update"
-            or self.action == "destroy"
-        ):
-            return [permissions.IsAuthenticated()]
-        return [permissions.AllowAny()]
+        # if (
+        #     self.action == "create"
+        #     or self.action == "partial_update"
+        #     or self.action == "update"
+        #     or self.action == "destroy"
+        # ):
+        #     return [permissions.IsAuthenticated()]
+        if self.action == "destroy":
+            return [IsOwnerCart(), permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated()]
