@@ -162,6 +162,7 @@ class RegisterView(APIView):
     )
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
+        print("OK")
         user = User.objects.filter(email=request.data["email"]).first()
         if user:
             if user.is_active is False:
@@ -185,7 +186,9 @@ class RegisterView(APIView):
                     **serializer.data, fullname=serializer.data["username"], otp=otp
                 )
                 # serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(
+                    {"detail": serializer.data}, status=status.HTTP_201_CREATED
+                )
         return Response({"detail": serializer.errors})
 
 
@@ -216,7 +219,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 
 class GetMeView(APIView):
-    serializer_class = MyTokenObtainPairSerializer
+    serializer_class = ResponseUserSerializer
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(tags=["user"], operation_summary="User Me")

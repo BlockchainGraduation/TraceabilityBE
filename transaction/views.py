@@ -11,6 +11,7 @@ from .serializers import (
     TransactionSerializer,
     ChangeStatusTransactionSerializer,
     DetailTransactionSerializer,
+    MultiTransactionSerializer,
 )
 from product.models import Product
 from product.serializers import SimpleProductSerializers
@@ -28,6 +29,32 @@ def check_accept_create_product(request, product_type):
 # Create your views here.
 
 from rest_framework import generics
+
+
+class CreateMultiTransactionViews(APIView):
+    @swagger_auto_schema(
+        tags=["transaction"],
+        operation_summary="CreateMultiTransactionViews",
+        request_body=MultiTransactionSerializer,
+    )
+    def post(self, request, *args, **kwargs):
+        data = Transaction.objects.bulk_create(request.data["my_list"])
+        # result_list = []
+        # for item_data in request.data["my_list"]:
+        #     serializer = Transaction.c(data=item_data)
+        #     serializer.is_valid()
+        #     valid_data = serializer.validated_data
+        #     result_list.append(valid_data)
+        # else:
+        #     # Handle invalid data
+        #     # Access serializer.errors for details on validation errors
+        #     error_detail = serializer.errors
+        return Response(
+            {
+                "detail": data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class FilterTransactionViews(generics.ListAPIView):

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Transaction
 from product.models import Product
 from user.models import User
+from cart.models import Cart
 from product.serializers import SimpleProductSerializers, ProductSerializers
 from user.serializers import ResponseUserSerializer
 from product.serializers import TrackListingProductField
@@ -31,6 +32,7 @@ class DetailTransactionSerializer(serializers.ModelSerializer):
 
 class TransactionSerializer(serializers.ModelSerializer):
     create_by = ResponseUserSerializer(read_only=True)
+    cart_id = serializers.IntegerField(write_only=True, required=False)
 
     class Meta:
         model = Transaction
@@ -43,6 +45,9 @@ class TransactionSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
+        cart_id = validated_data.get("cart_id", None)
+        if cart_id is not None:
+            Cart.objects.filter(pk=cart_id).first().delete()
         user = User.objects.filter(pk=self.context["request"].user.pk).first()
         data = validated_data
         data["create_by"] = user
@@ -53,3 +58,22 @@ class TransactionSerializer(serializers.ModelSerializer):
         #         return super().create(request, *args, **kwargs)
         #     print(product.quantity)
         return super().create(validated_data)
+
+
+class ItemMultiTransactionSerializer(serializers.ModelSerializer):
+    cart_id = serializers.IntegerField(write_only=True, required=False)
+
+    class Meta:
+        model = Transaction
+        fields = "__all__"
+        extra_kwargs = {
+            "active": {"read_only": True},
+            # "is_reject": {"read_only": True},
+        }
+
+
+class MultiTransactionSerializer(serializers.Serializer):
+    my_list = serializers.ListField(child=ItemMultiTransactionSerializer())
+
+    class Meta:
+        fields = "__all__"
