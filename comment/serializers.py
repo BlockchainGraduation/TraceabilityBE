@@ -1,5 +1,6 @@
 from rest_framework import serializers, status
 from comment.models import Comment
+from notification.models import Notification, COMMENT_PRODUCT
 
 
 class TrackListingUserField(serializers.RelatedField):
@@ -21,6 +22,11 @@ class CommentSerializers(serializers.ModelSerializer):
         try:
             user = self.context["request"].user
             validated_data["user_id"] = user
+            Notification.objects.create(
+                create_by=self.context["request"].user,
+                product_id=validated_data["product_id"],
+                notification_type=COMMENT_PRODUCT,
+            )
             comment = Comment.objects.create(**validated_data)
             return comment
         except Exception as e:

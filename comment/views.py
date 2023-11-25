@@ -4,6 +4,7 @@ from .models import Comment
 from .serializers import CommentSerializers, DetailCommentSerializers
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from notification.models import Notification
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
@@ -31,6 +32,9 @@ class CommentView(viewsets.ModelViewSet):
         if self.action == "create":
             return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]
+
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
 
 
 class GetFilterCommentView(generics.ListAPIView):

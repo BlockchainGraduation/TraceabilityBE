@@ -68,12 +68,13 @@ class ItemMultiTransactionSerializer(serializers.ModelSerializer):
         fields = "__all__"
         extra_kwargs = {
             "active": {"read_only": True},
-            # "is_reject": {"read_only": True},
+            "is_reject": {"read_only": True},
+            "create_by": {"read_only": True},
         }
 
 
 class MultiTransactionSerializer(serializers.Serializer):
-    my_list = serializers.ListField(child=ItemMultiTransactionSerializer())
+    list_transactions = serializers.ListField(child=ItemMultiTransactionSerializer())
 
     class Meta:
         fields = "__all__"

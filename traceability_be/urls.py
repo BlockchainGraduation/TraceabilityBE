@@ -39,6 +39,7 @@ urlpatterns = [
     path("api/", include("product.urls"), name="product"),
     path("api/", include("transaction.urls"), name="transaction"),
     path("api/", include("cart.urls"), name="cart"),
+    path("api/", include("notification.urls"), name="notification"),
     path("api/", include("detail_description.urls"), name="detail_description"),
     path("api/growup/", include("growup.urls"), name="growup"),
     path("api/comment/", include("comment.urls"), name="comment"),

@@ -6,6 +6,8 @@ from rest_framework import permissions, status
 from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
+from cart.models import Cart
+import collections.abc
 from .models import Transaction, PENDDING, REJECT, ACCEPT, DONE
 from .serializers import (
     TransactionSerializer,
@@ -32,29 +34,43 @@ from rest_framework import generics
 
 
 class CreateMultiTransactionViews(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     @swagger_auto_schema(
         tags=["transaction"],
         operation_summary="CreateMultiTransactionViews",
         request_body=MultiTransactionSerializer,
     )
     def post(self, request, *args, **kwargs):
-        data = Transaction.objects.bulk_create(request.data["my_list"])
+        # data = request.data["list_transactions"]
         # result_list = []
-        # for item_data in request.data["my_list"]:
-        #     serializer = Transaction.c(data=item_data)
-        #     serializer.is_valid()
-        #     valid_data = serializer.validated_data
-        #     result_list.append(valid_data)
-        # else:
-        #     # Handle invalid data
-        #     # Access serializer.errors for details on validation errors
-        #     error_detail = serializer.errors
-        return Response(
-            {
-                "detail": data,
-            },
-            status=status.HTTP_201_CREATED,
-        )
+        if type(request.data["list_transactions"]).__name__ in ("list", "tuple"):
+            for item_data in request.data["list_transactions"]:
+                product = Product.objects.filter(pk=item_data["product_id"]).first()
+                Transaction.objects.create(
+                    quantity=item_data["quantity"],
+                    price=item_data["price"],
+                    product_id=product,
+                    create_by=request.user,
+                )
+                Cart.objects.filter(
+                    pk=item_data["cart_id"], create_by=request.user
+                ).delete()
+            return Response(
+                {
+                    "detail": "CREATED",
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            # Handle invalid data
+            # Access serializer.errors for details on validation errors
+            return Response(
+                {
+                    "detail": "DATA_INVALID",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class FilterTransactionViews(generics.ListAPIView):
