@@ -18,4 +18,5 @@ class PusherClient(Singleton):
             self.pusher_client.trigger(channel, event, data_push)
             print("PusherClient: push_notification called successes")
         except Exception as error:
+            print(error)
             print("PusherClient: push_notification error")

@@ -110,20 +110,29 @@ class ProductSerializers(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        if self.context["request"].user.role != FACTORY:
-            checktransaction_id = validated_data.get("transaction_id", None)
-            if checktransaction_id is None:
-                raise APIException(
-                    detail="transaction_id is required",
-                )
-        uploaded_images = validated_data.pop("uploaded_images")
-        validated_data["create_by"] = User.objects.get(
-            pk=self.context["request"].user.pk
-        )
-        product = Product.objects.create(**validated_data)
-        for image in uploaded_images:
-            ProductImage.objects.create(product=product, image=image)
-        return product
+        if (
+            self.context["request"].user.confirm_status != "DONE"
+            or self.context["request"].user.is_active is False
+            or self.context["request"].user.is_delete is True
+        ):
+            raise APIException(
+                detail="BLACK_USER",
+            )
+        else:
+            if self.context["request"].user.role != FACTORY:
+                checktransaction_id = validated_data.get("transaction_id", None)
+                if checktransaction_id is None:
+                    raise APIException(
+                        detail="transaction_id is required",
+                    )
+            uploaded_images = validated_data.pop("uploaded_images")
+            validated_data["create_by"] = User.objects.get(
+                pk=self.context["request"].user.pk
+            )
+            product = Product.objects.create(**validated_data)
+            for image in uploaded_images:
+                ProductImage.objects.create(product=product, image=image)
+            return product
 
     def update(self, instance, validated_data):
         if self.initial_data.get("uploaded_images") is None:

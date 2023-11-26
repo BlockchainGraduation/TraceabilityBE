@@ -34,7 +34,7 @@ class IsOwnerProduct(permissions.BasePermission):
 
 
 class ProductMeViews(generics.ListAPIView):
-    queryset = Product.objects.all()
+    queryset = Product.objects.filter(is_delete=False)
     filter_backends = [DjangoFilterBackend]
     serializer_class = SimpleProductSerializers
     filterset_fields = ["create_by"]
@@ -128,3 +128,8 @@ class ProductTypeViews(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        if self.request.query_params:
+            return Product.objects.filter(active=True, is_delete=False)
+        return Product.objects.none()

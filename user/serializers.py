@@ -37,6 +37,11 @@ class RegisterRuleSerializer(serializers.Serializer):
     survey = serializers.JSONField()
 
 
+class ConfirmUserSerializer(serializers.Serializer):
+    user_id = serializers.UUIDField(format="hex_verbose", required=True)
+    status = serializers.BooleanField(required=True)
+
+
 class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=20, min_length=5, allow_blank=False, trim_whitespace=False

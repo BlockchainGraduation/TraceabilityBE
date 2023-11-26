@@ -26,4 +26,6 @@ urlpatterns = [
     path("user/update", views.UpdateUserView.as_view()),
     path("user/<uuid:pk>", views.GetUserView.as_view()),
     path("user/list", views.GetListUserView.as_view()),
+    path("user/confirm", views.ConfirmUserView.as_view()),
+    path("user/lock", views.BlackUserView.as_view()),
 ]

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Transaction
 from product.models import Product
+from rest_framework.exceptions import APIException
 from user.models import User
 from cart.models import Cart
 from product.serializers import SimpleProductSerializers, ProductSerializers
@@ -45,19 +46,26 @@ class TransactionSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        cart_id = validated_data.get("cart_id", None)
-        if cart_id is not None:
-            Cart.objects.filter(pk=cart_id).first().delete()
-        user = User.objects.filter(pk=self.context["request"].user.pk).first()
-        data = validated_data
-        data["create_by"] = user
-        # print(data)
-        # product = Product.objects.filter(pk=self.request.data["product_id"]).first()
-        # if product:
-        #     if product.quantity >= request.data["product_id"]:
-        #         return super().create(request, *args, **kwargs)
-        #     print(product.quantity)
-        return super().create(validated_data)
+        if (
+            user.confirm_status != "DONE"
+            or user.is_active is False
+            or user.is_delete is True
+        ):
+            raise APIException("BLACK_USER")
+        else:
+            cart_id = validated_data.get("cart_id", None)
+            if cart_id is not None:
+                Cart.objects.filter(pk=cart_id).first().delete()
+            user = User.objects.filter(pk=self.context["request"].user.pk).first()
+            data = validated_data
+            data["create_by"] = user
+            # print(data)
+            # product = Product.objects.filter(pk=self.request.data["product_id"]).first()
+            # if product:
+            #     if product.quantity >= request.data["product_id"]:
+            #         return super().create(request, *args, **kwargs)
+            #     print(product.quantity)
+            return super().create(validated_data)
 
 
 class ItemMultiTransactionSerializer(serializers.ModelSerializer):

@@ -14,3 +14,7 @@ class NotificationSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "create_by": {"read_only": True},
         }
+
+
+class DeleteNotificationSerializer(serializers.Serializer):
+    notification_id = serializers.IntegerField(required=True)

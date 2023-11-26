@@ -12,6 +12,7 @@ from .serializers import (
     ResetPasswordSerializer,
     ForgetSerializer,
     LogoutSerializer,
+    ConfirmUserSerializer,
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import generics
@@ -21,7 +22,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .models import User, PENDDING
+from .models import User, PENDDING, NONE
 from product.models import Product
 from transaction.models import Transaction, REJECT, ACCEPT, DONE
 from product.serializers import ProductSerializers, SimpleProductSerializers
@@ -279,10 +280,10 @@ class MyTokenObtainPairView(TokenObtainPairView):
         # access = response.data['access']
         # print(request.data["username"])
         user = User.objects.filter(
-            username=request.data["username"], is_delete=False
+            username=request.data["username"], is_delete=False, is_active=True
         ).first()
         if user is None:
-            response.data = {"ACCOUNT_DELETED"}
+            response.data = {"BLACK_USER"}
             response.status_code = status.HTTP_423_LOCKED
             return response
         response.data = {
@@ -395,7 +396,7 @@ class GetUserView(APIView):
 
     def get(self, request, *args, **kwargs):
         # print(kwargs["pk"])
-        user = User.objects.filter(pk=kwargs["pk"]).first()
+        user = User.objects.filter(pk=kwargs["pk"], is_delete=False).first()
         if user:
             product = Product.objects.filter(create_by=kwargs["pk"])
             return Response(
@@ -411,7 +412,7 @@ class GetUserView(APIView):
 
 
 class GetListUserView(generics.ListAPIView):
-    queryset = User.objects.all()
+    queryset = User.objects.filter(is_delete=False, is_superuser=False)
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["confirm_status", "id"]
     permission_classes = [IsAdminUser]
@@ -440,3 +441,54 @@ class GetListUserView(generics.ListAPIView):
 
     # def partial_update(self, request, *args, **kwargs):
     #     return super().partial_update(request, *args, **kwargs)
+
+
+class ConfirmUserView(APIView):
+    permission_classes = [IsAdminUser]
+
+    @swagger_auto_schema(
+        request_body=ConfirmUserSerializer,
+        tags=["auth"],
+        operation_summary="Confirm user by admin",
+    )
+    def patch(self, request, *args, **kwargs):
+        serializes = ConfirmUserSerializer(data=request.data)
+        serializes.is_valid(raise_exception=True)
+        user = User.objects.filter(pk=serializes.data["user_id"]).first()
+        if user:
+            if serializes.data["status"] is True:
+                user.confirm_status = DONE
+                user.fullname = user.survey["name"]
+                user.phone = user.survey["phone"] or None
+                user.role = user.survey["user_role"]
+                user.save()
+                return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)
+            else:
+                user.confirm_status = NONE
+                user.save()
+                return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)
+        return Response({"detail": "USER_NOT_EXISTS"}, status=status.HTTP_200_OK)
+
+
+class BlackUserView(APIView):
+    permission_classes = [IsAdminUser]
+
+    @swagger_auto_schema(
+        request_body=ConfirmUserSerializer,
+        tags=["auth"],
+        operation_summary="Block user by admin",
+    )
+    def patch(self, request, *args, **kwargs):
+        serializes = ConfirmUserSerializer(data=request.data)
+        serializes.is_valid(raise_exception=True)
+        user = User.objects.filter(pk=serializes.data["user_id"]).first()
+        if user:
+            if serializes.data["status"] is True:
+                user.is_active = True
+                user.save()
+                return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)
+            else:
+                user.is_active = False
+                user.save()
+                return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)
+        return Response({"detail": "USER_NOT_EXISTS"}, status=status.HTTP_200_OK)
