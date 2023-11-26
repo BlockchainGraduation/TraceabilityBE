@@ -133,3 +133,33 @@ class ProductTypeViews(generics.ListAPIView):
         if self.request.query_params:
             return Product.objects.filter(active=True, is_delete=False)
         return Product.objects.none()
+
+
+class ProductSearchViews(generics.ListAPIView):
+    queryset = Product.objects.filter(active=True, is_delete=False)
+    serializer_class = SimpleProductSerializers
+
+    @swagger_auto_schema(
+        tags=["product"],
+        operation_summary="Search Product",
+        manual_parameters=[
+            openapi.Parameter(
+                "name",
+                in_=openapi.IN_QUERY,
+                description="Lọc kiểu",
+                type=openapi.TYPE_STRING,
+            ),
+        ],
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        if self.request.query_params:
+            # print(self.request.query_params)
+            return Product.objects.filter(
+                active=True,
+                is_delete=False,
+                name__icontains=self.request.query_params["name"],
+            )
+        return Product.objects.none()
