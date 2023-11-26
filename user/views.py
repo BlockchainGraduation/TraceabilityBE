@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth import authenticate
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.views import APIView
 from .serializers import (
     RegisterSerializer,
@@ -12,6 +12,7 @@ from .serializers import (
     ResetPasswordSerializer,
     ForgetSerializer,
     LogoutSerializer,
+    ConfirmUserSerializer,
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import generics
@@ -20,9 +21,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
-from .models import User, PENDING
+from drf_yasg import openapi
+from .models import User, PENDDING, NONE
 from product.models import Product
-from product.serializers import ProductSerializers
+from transaction.models import Transaction, REJECT, ACCEPT, DONE
+from product.serializers import ProductSerializers, SimpleProductSerializers
+from django_filters.rest_framework import DjangoFilterBackend
 from .utils import generate_otp, send_otp_email
 
 
@@ -33,6 +37,80 @@ def get_tokens_for_user(user):
         "refresh": str(refresh),
         "access": str(refresh.access_token),
     }
+
+
+class StatisticalView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        tags=["user"],
+        operation_summary="User Statistical",
+    )
+    def get(self, request):
+        product_count = Product.objects.filter(create_by=request.user).count()
+        public_product_count = Product.objects.filter(
+            create_by=request.user, active=True
+        ).count()
+        private_product_count = Product.objects.filter(
+            create_by=request.user, active=False
+        ).count()
+
+        # Transaction Buy
+        transaction_count = Transaction.objects.filter(create_by=request.user).count()
+        pendding_transaction_count = Transaction.objects.filter(
+            create_by=request.user, status=PENDDING
+        ).count()
+        accept_transaction_count = Transaction.objects.filter(
+            create_by=request.user, status=ACCEPT
+        ).count()
+        reject_transaction_count = Transaction.objects.filter(
+            create_by=request.user, status=REJECT
+        ).count()
+        done_transaction_count = Transaction.objects.filter(
+            create_by=request.user, status=DONE
+        ).count()
+        # Transaction sales
+        transaction_sales_count = Transaction.objects.filter(
+            product_id__create_by=request.user
+        ).count()
+        pendding_transaction_sales_count = Transaction.objects.filter(
+            product_id__create_by=request.user, status=PENDDING
+        ).count()
+        accept_transaction_sales_count = Transaction.objects.filter(
+            product_id__create_by=request.user, status=ACCEPT
+        ).count()
+        reject_transaction_sales_count = Transaction.objects.filter(
+            product_id__create_by=request.user, status=REJECT
+        ).count()
+        done_transaction_sales_count = Transaction.objects.filter(
+            product_id__create_by=request.user, status=DONE
+        ).count()
+        return Response(
+            {
+                "detail": {
+                    "product": {
+                        "product_count": product_count,
+                        "public_product_count": public_product_count,
+                        "private_product_count": private_product_count,
+                    },
+                    "transaction": {
+                        "transaction_count": transaction_count,
+                        "pendding_transaction_count": pendding_transaction_count,
+                        "accept_transaction_count": accept_transaction_count,
+                        "reject_transaction_count": reject_transaction_count,
+                        "done_transaction_count": done_transaction_count,
+                    },
+                    "sales": {
+                        "transaction_sales_count": transaction_sales_count,
+                        "accept_transaction_sales_count": accept_transaction_sales_count,
+                        "pendding_transaction_sales_count": pendding_transaction_sales_count,
+                        "reject_transaction_sales_count": reject_transaction_sales_count,
+                        "done_transaction_sales_count": done_transaction_sales_count,
+                    },
+                }
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class ConfirmOTP(APIView):
@@ -67,14 +145,16 @@ class ConfirmOTP(APIView):
                 return Response(
                     {"detail": "WRONG_OTP"}, status=status.HTTP_400_BAD_REQUEST
                 )
-        return Response({"detail": serializer.errors})
+        return Response(
+            {"detail": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class ForgetView(APIView):
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
-        request_body=ConfirmOTPSerializer,
+        request_body=ForgetSerializer,
         tags=["auth"],
         operation_summary="User Forget Password",
     )
@@ -141,7 +221,7 @@ class RegisterRuleView(APIView):
         serializer = RegisterRuleSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             user = User.objects.get(id=request.user.pk)
-            user.confirm_status = PENDING
+            user.confirm_status = PENDDING
             user.survey = serializer.data["survey"]
             user.save()
             return Response(
@@ -160,6 +240,7 @@ class RegisterView(APIView):
     )
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
+        print("OK")
         user = User.objects.filter(email=request.data["email"]).first()
         if user:
             if user.is_active is False:
@@ -180,23 +261,58 @@ class RegisterView(APIView):
                 otp = generate_otp()
                 send_otp_email(serializer.data["email"], otp)
                 User.objects.create(
-                    **serializer.data, fullname=serializer.data["email"], otp=otp
+                    **serializer.data, fullname=serializer.data["username"], otp=otp
                 )
                 # serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(
+                    {"detail": serializer.data}, status=status.HTTP_201_CREATED
+                )
         return Response({"detail": serializer.errors})
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+    permission_classes = [AllowAny]
 
     @swagger_auto_schema(tags=["auth"], operation_summary="User Login")
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         # access = response.data['access']
+        # print(request.data["username"])
+        user = User.objects.filter(
+            username=request.data["username"], is_delete=False, is_active=True
+        ).first()
+        if user is None:
+            response.data = {"BLACK_USER"}
+            response.status_code = status.HTTP_423_LOCKED
+            return response
+        response.data = {
+            "access": response.data["access"],
+            "refresh": response.data["refresh"],
+            "user": ResponseUserSerializer(user).data,
+        }
         response.set_cookie("access", response.data["access"], httponly=False)
         response.set_cookie("refresh", response.data["refresh"], httponly=False)
         return response
+
+
+class GetMeView(APIView):
+    serializer_class = ResponseUserSerializer
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(tags=["user"], operation_summary="User Me")
+    def get(self, request, *args, **kwargs):
+        # response = super().post(request, *args, **kwargs)
+        if request.user.is_delete:
+            return Response(
+                {"detail": "ACCOUNT_DELETED"},
+                status=status.HTTP_423_LOCKED,
+            )
+        # user = User.objects.filter(username=request.data["username"]).first()
+        return Response(
+            {"user": ResponseUserSerializer(request.user).data},
+            status=status.HTTP_202_ACCEPTED,
+        )
 
 
 class MyTokenRefreshView(TokenRefreshView):
@@ -253,6 +369,7 @@ class UserView(APIView):
 
 
 class UpdateUserView(generics.RetrieveUpdateAPIView):
+    # queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = UpdateUserSerializer
 
@@ -270,8 +387,8 @@ class UpdateUserView(generics.RetrieveUpdateAPIView):
         )
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        return Response({serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GetUserView(APIView):
@@ -279,13 +396,13 @@ class GetUserView(APIView):
 
     def get(self, request, *args, **kwargs):
         # print(kwargs["pk"])
-        user = User.objects.filter(pk=kwargs["pk"]).first()
+        user = User.objects.filter(pk=kwargs["pk"], is_delete=False).first()
         if user:
             product = Product.objects.filter(create_by=kwargs["pk"])
             return Response(
                 {
                     "user": ResponseUserSerializer(user).data,
-                    "products": ProductSerializers(product, many=True).data,
+                    "products": SimpleProductSerializers(product, many=True).data,
                 },
                 status=status.HTTP_200_OK,
             )
@@ -293,5 +410,85 @@ class GetUserView(APIView):
             {"detail": "USER_NOT_FOUND"}, status=status.HTTP_400_BAD_REQUEST
         )
 
+
+class GetListUserView(generics.ListAPIView):
+    queryset = User.objects.filter(is_delete=False, is_superuser=False)
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["confirm_status", "id"]
+    permission_classes = [IsAdminUser]
+    serializer_class = ResponseUserSerializer
+
+    @swagger_auto_schema(
+        tags=["auth"],
+        operation_summary="Get list user",
+        manual_parameters=[
+            openapi.Parameter(
+                "confirm_status",
+                in_=openapi.IN_QUERY,
+                description="Lọc theo status",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "id",
+                in_=openapi.IN_QUERY,
+                description="Lọc theo create_by",
+                type=openapi.TYPE_STRING,
+            ),
+        ],
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
     # def partial_update(self, request, *args, **kwargs):
     #     return super().partial_update(request, *args, **kwargs)
+
+
+class ConfirmUserView(APIView):
+    permission_classes = [IsAdminUser]
+
+    @swagger_auto_schema(
+        request_body=ConfirmUserSerializer,
+        tags=["auth"],
+        operation_summary="Confirm user by admin",
+    )
+    def patch(self, request, *args, **kwargs):
+        serializes = ConfirmUserSerializer(data=request.data)
+        serializes.is_valid(raise_exception=True)
+        user = User.objects.filter(pk=serializes.data["user_id"]).first()
+        if user:
+            if serializes.data["status"] is True:
+                user.confirm_status = DONE
+                user.fullname = user.survey["name"]
+                user.phone = user.survey["phone"] or None
+                user.role = user.survey["user_role"]
+                user.save()
+                return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)
+            else:
+                user.confirm_status = NONE
+                user.save()
+                return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)
+        return Response({"detail": "USER_NOT_EXISTS"}, status=status.HTTP_200_OK)
+
+
+class BlackUserView(APIView):
+    permission_classes = [IsAdminUser]
+
+    @swagger_auto_schema(
+        request_body=ConfirmUserSerializer,
+        tags=["auth"],
+        operation_summary="Block user by admin",
+    )
+    def patch(self, request, *args, **kwargs):
+        serializes = ConfirmUserSerializer(data=request.data)
+        serializes.is_valid(raise_exception=True)
+        user = User.objects.filter(pk=serializes.data["user_id"]).first()
+        if user:
+            if serializes.data["status"] is True:
+                user.is_active = True
+                user.save()
+                return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)
+            else:
+                user.is_active = False
+                user.save()
+                return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)
+        return Response({"detail": "USER_NOT_EXISTS"}, status=status.HTTP_200_OK)

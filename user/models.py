@@ -7,27 +7,26 @@ import uuid
 
 
 MEMBER = "MEMBER"
-FARMER = "FARMER"
-SEEDLING_COMPANY = "SEEDLING_COMPANY"
 FACTORY = "FACTORY"
 DISTRIBUTER = "DISTRIBUTER"
+RETAILER = "RETAILER"
+# DISTRIBUTER = "DISTRIBUTER"
 
 NONE = "NONE"
-PENDING = "PENDING"
+PENDDING = "PENDDING"
 DONE = "DONE"
 
 
 class User(AbstractUser):
     ROLE_CHOICE = [
         (MEMBER, "MEMBER"),
-        (FARMER, "FARMER"),
-        (SEEDLING_COMPANY, "SEEDLING_COMPANY"),
         (FACTORY, "FACTORY"),
         (DISTRIBUTER, "DISTRIBUTER"),
+        (RETAILER, "RETAILER"),
     ]
     CONFIRM_CHOICE = [
         (NONE, "NONE"),
-        (PENDING, "PENDING"),
+        (PENDDING, "PENDDING"),
         (DONE, "DONE"),
     ]
     first_name = (None,)
@@ -44,12 +43,15 @@ class User(AbstractUser):
     phone = models.TextField(null=True, default=None)
     wallet_address = models.CharField(max_length=100, null=True, default=None)
     geographical_address = models.CharField(max_length=100, null=True, default="")
+    introduce = models.TextField(default=None, null=True)
     role = models.CharField(choices=ROLE_CHOICE, default=MEMBER)
     otp = models.CharField(max_length=6, null=True, blank=True)
     link = models.JSONField(default=dict)
+    account_balance = models.BigIntegerField(default=0)
     confirm_status = models.CharField(choices=CONFIRM_CHOICE, default=NONE)
     survey = models.JSONField(default=dict)
     is_active = models.BooleanField(default=False)
+    is_delete = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return self.username

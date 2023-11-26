@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -38,8 +38,11 @@ urlpatterns = [
     path("api/", include("user.urls"), name="auth"),
     path("api/", include("product.urls"), name="product"),
     path("api/", include("transaction.urls"), name="transaction"),
-    path("api/growup", include("growup.urls"), name="growup"),
-    path("api/comment", include("comment.urls"), name="comment"),
+    path("api/", include("cart.urls"), name="cart"),
+    path("api/", include("notification.urls"), name="notification"),
+    path("api/", include("detail_description.urls"), name="detail_description"),
+    path("api/growup/", include("growup.urls"), name="growup"),
+    path("api/comment/", include("comment.urls"), name="comment"),
     path(
         "swagger<format>/", schema_view.without_ui(cache_timeout=0), name="schema-json"
     ),
@@ -49,4 +52,5 @@ urlpatterns = [
         name="schema-swagger-ui",
     ),
     path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
+    # path("admin_tools/", include("admin_tools.urls")),
 ]

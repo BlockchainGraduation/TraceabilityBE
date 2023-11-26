@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 from django.utils.timezone import timedelta
 
@@ -32,6 +33,14 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # librarie
+    # "admin_tools",
+    # "admin_tools.theming",
+    # "admin_tools.menu",
+    # "admin_tools.dashboard",
+    # "djangobower",
+    # "django.contrib.sites",
+    #
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -43,6 +52,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
+    "django_filters",
     "drf_yasg",
     "user_image",
     "product_image",
@@ -52,6 +62,9 @@ INSTALLED_APPS = [
     "comment",
     "growup",
     "transaction",
+    "detail_description",
+    "notification",
+    "cart",
 ]
 
 MIDDLEWARE = [
@@ -63,6 +76,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "product.middleware.CustomExceptionHandlerMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "traceability_be.urls"
@@ -73,7 +87,16 @@ TEMPLATES = [
         "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
+            # "loaders": [
+            # "django.template.loaders.filesystem.Loader",
+            # "django.template.loaders.app_directories.Loader",
+            # "admin_tools.template_loaders.Loader",
+            # ],
             "context_processors": [
+                # custom
+                # "admin_tools.template_loaders.Loader",
+                # "django.core.context_processors.request",
+                #
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
@@ -129,7 +152,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Ho_Chi_Minh"
 
 USE_I18N = True
 
@@ -148,6 +171,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # Custom
+APPEND_SLASH = False
+
 
 AUTH_USER_MODEL = "user.User"
 
@@ -155,6 +180,9 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -162,8 +190,9 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = ["*"]
 ALLOWED_HOSTS = ["*"]
 
+
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=24),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
@@ -221,3 +250,17 @@ CLOUDINARY_STORAGE = {
 }
 MEDIA_URL = "/media/"  # or any prefix you choose
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+# Statistical
+
+# BOWER_COMPONENTS_ROOT = os.path.join("traceability_be", "components")
+
+
+# BOWER_INSTALLED_APPS = (
+#     "jquery#2.0.3",
+#     "jquery-ui#~1.10.3",
+#     "d3#3.3.6",
+#     "nvd3#1.1.12-beta",
+# )
+
+# STATICFILES_FINDERS = ("djangobower.finders.BowerFinder",)
