@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth import authenticate
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.views import APIView
 from .serializers import (
     RegisterSerializer,
@@ -20,9 +20,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
-from .models import User, PENDING
+from drf_yasg import openapi
+from .models import User, PENDDING
 from product.models import Product
+from transaction.models import Transaction, REJECT, ACCEPT, DONE
 from product.serializers import ProductSerializers, SimpleProductSerializers
+from django_filters.rest_framework import DjangoFilterBackend
 from .utils import generate_otp, send_otp_email
 
 
@@ -33,6 +36,80 @@ def get_tokens_for_user(user):
         "refresh": str(refresh),
         "access": str(refresh.access_token),
     }
+
+
+class StatisticalView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        tags=["user"],
+        operation_summary="User Statistical",
+    )
+    def get(self, request):
+        product_count = Product.objects.filter(create_by=request.user).count()
+        public_product_count = Product.objects.filter(
+            create_by=request.user, active=True
+        ).count()
+        private_product_count = Product.objects.filter(
+            create_by=request.user, active=False
+        ).count()
+
+        # Transaction Buy
+        transaction_count = Transaction.objects.filter(create_by=request.user).count()
+        pendding_transaction_count = Transaction.objects.filter(
+            create_by=request.user, status=PENDDING
+        ).count()
+        accept_transaction_count = Transaction.objects.filter(
+            create_by=request.user, status=ACCEPT
+        ).count()
+        reject_transaction_count = Transaction.objects.filter(
+            create_by=request.user, status=REJECT
+        ).count()
+        done_transaction_count = Transaction.objects.filter(
+            create_by=request.user, status=DONE
+        ).count()
+        # Transaction sales
+        transaction_sales_count = Transaction.objects.filter(
+            product_id__create_by=request.user
+        ).count()
+        pendding_transaction_sales_count = Transaction.objects.filter(
+            product_id__create_by=request.user, status=PENDDING
+        ).count()
+        accept_transaction_sales_count = Transaction.objects.filter(
+            product_id__create_by=request.user, status=ACCEPT
+        ).count()
+        reject_transaction_sales_count = Transaction.objects.filter(
+            product_id__create_by=request.user, status=REJECT
+        ).count()
+        done_transaction_sales_count = Transaction.objects.filter(
+            product_id__create_by=request.user, status=DONE
+        ).count()
+        return Response(
+            {
+                "detail": {
+                    "product": {
+                        "product_count": product_count,
+                        "public_product_count": public_product_count,
+                        "private_product_count": private_product_count,
+                    },
+                    "transaction": {
+                        "transaction_count": transaction_count,
+                        "pendding_transaction_count": pendding_transaction_count,
+                        "accept_transaction_count": accept_transaction_count,
+                        "reject_transaction_count": reject_transaction_count,
+                        "done_transaction_count": done_transaction_count,
+                    },
+                    "sales": {
+                        "transaction_sales_count": transaction_sales_count,
+                        "accept_transaction_sales_count": accept_transaction_sales_count,
+                        "pendding_transaction_sales_count": pendding_transaction_sales_count,
+                        "reject_transaction_sales_count": reject_transaction_sales_count,
+                        "done_transaction_sales_count": done_transaction_sales_count,
+                    },
+                }
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class ConfirmOTP(APIView):
@@ -143,7 +220,7 @@ class RegisterRuleView(APIView):
         serializer = RegisterRuleSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             user = User.objects.get(id=request.user.pk)
-            user.confirm_status = PENDING
+            user.confirm_status = PENDDING
             user.survey = serializer.data["survey"]
             user.save()
             return Response(
@@ -331,6 +408,35 @@ class GetUserView(APIView):
         return Response(
             {"detail": "USER_NOT_FOUND"}, status=status.HTTP_400_BAD_REQUEST
         )
+
+
+class GetListUserView(generics.ListAPIView):
+    queryset = User.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["confirm_status", "id"]
+    permission_classes = [IsAdminUser]
+    serializer_class = ResponseUserSerializer
+
+    @swagger_auto_schema(
+        tags=["auth"],
+        operation_summary="Get list user",
+        manual_parameters=[
+            openapi.Parameter(
+                "confirm_status",
+                in_=openapi.IN_QUERY,
+                description="Lọc theo status",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "id",
+                in_=openapi.IN_QUERY,
+                description="Lọc theo create_by",
+                type=openapi.TYPE_STRING,
+            ),
+        ],
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
     # def partial_update(self, request, *args, **kwargs):
     #     return super().partial_update(request, *args, **kwargs)

@@ -16,3 +16,4 @@ class Notification(models.Model):
     create_by = models.ForeignKey(
         "user.User", related_name="user_notification", on_delete=models.PROTECT
     )
+    create_at = models.DateTimeField(auto_now_add=True)

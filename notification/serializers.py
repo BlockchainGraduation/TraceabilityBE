@@ -1,8 +1,13 @@
 from rest_framework import serializers
 from .models import Notification
+from user.serializers import ResponseUserSerializer
+from product.serializers import SimpleProductSerializers
 
 
 class NotificationSerializer(serializers.ModelSerializer):
+    create_by = ResponseUserSerializer(read_only=True)
+    product_id = SimpleProductSerializers(read_only=True)
+
     class Meta:
         model = Notification
         fields = "__all__"

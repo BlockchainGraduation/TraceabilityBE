@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 from django.utils.timezone import timedelta
 
@@ -32,6 +33,14 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # librarie
+    # "admin_tools",
+    # "admin_tools.theming",
+    # "admin_tools.menu",
+    # "admin_tools.dashboard",
+    # "djangobower",
+    # "django.contrib.sites",
+    #
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -78,7 +87,16 @@ TEMPLATES = [
         "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
+            # "loaders": [
+            # "django.template.loaders.filesystem.Loader",
+            # "django.template.loaders.app_directories.Loader",
+            # "admin_tools.template_loaders.Loader",
+            # ],
             "context_processors": [
+                # custom
+                # "admin_tools.template_loaders.Loader",
+                # "django.core.context_processors.request",
+                #
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
@@ -232,3 +250,17 @@ CLOUDINARY_STORAGE = {
 }
 MEDIA_URL = "/media/"  # or any prefix you choose
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+# Statistical
+
+# BOWER_COMPONENTS_ROOT = os.path.join("traceability_be", "components")
+
+
+# BOWER_INSTALLED_APPS = (
+#     "jquery#2.0.3",
+#     "jquery-ui#~1.10.3",
+#     "d3#3.3.6",
+#     "nvd3#1.1.12-beta",
+# )
+
+# STATICFILES_FINDERS = ("djangobower.finders.BowerFinder",)

@@ -105,8 +105,8 @@ class FilterTransactionViews(generics.ListAPIView):
 class TransactionMeView(generics.ListAPIView):
     # lookup_field = "product_id"
     queryset = Transaction.objects.all()
-    # filter_backends = [DjangoFilterBackend]
-    # filterset_fields = ["status"]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["status", "create_by"]
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = DetailTransactionSerializer
 
@@ -120,27 +120,34 @@ class TransactionMeView(generics.ListAPIView):
                 description="Lọc theo status",
                 type=openapi.TYPE_STRING,
             ),
+            openapi.Parameter(
+                "create_by",
+                in_=openapi.IN_QUERY,
+                description="Lọc theo create_by",
+                type=openapi.TYPE_STRING,
+            ),
         ],
     )
     def get(self, request, *args, **kwargs):
-        transaction_status = request.GET.get("status", None)
+        # transaction_status = request.GET.get("status", None)
 
-        if transaction_status is None:
-            transactions = Transaction.objects.filter(
-                create_by=request.user.pk
-                # product_id__create_by=request.user.pk,
-            )
-        else:
-            transactions = Transaction.objects.filter(
-                create_by=request.user.pk,
-                status=transaction_status
-                # product_id__create_by=request.user.pk,
-            )
+        # if transaction_status is None:
+        #     transactions = Transaction.objects.filter(
+        #         create_by=request.user.pk
+        #         # product_id__create_by=request.user.pk,
+        #     )
+        # else:
+        #     transactions = Transaction.objects.filter(
+        #         create_by=request.user.pk,
+        #         status=transaction_status
+        #         # product_id__create_by=request.user.pk,
+        #     )
 
-        return Response(
-            DetailTransactionSerializer(transactions, many=True).data,
-            status=status.HTTP_202_ACCEPTED,
-        )
+        # return Response(
+        #     DetailTransactionSerializer(transactions, many=True).data,
+        #     status=status.HTTP_202_ACCEPTED,
+        # )
+        return super().get(self, request, *args, **kwargs)
 
 
 class TransactionView(generics.CreateAPIView, generics.ListAPIView):

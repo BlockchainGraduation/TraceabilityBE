@@ -13,7 +13,7 @@ RETAILER = "RETAILER"
 # DISTRIBUTER = "DISTRIBUTER"
 
 NONE = "NONE"
-PENDING = "PENDING"
+PENDDING = "PENDDING"
 DONE = "DONE"
 
 
@@ -26,7 +26,7 @@ class User(AbstractUser):
     ]
     CONFIRM_CHOICE = [
         (NONE, "NONE"),
-        (PENDING, "PENDING"),
+        (PENDDING, "PENDDING"),
         (DONE, "DONE"),
     ]
     first_name = (None,)

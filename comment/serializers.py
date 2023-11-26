@@ -19,18 +19,19 @@ class CommentSerializers(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        try:
-            user = self.context["request"].user
-            validated_data["user_id"] = user
-            Notification.objects.create(
-                create_by=self.context["request"].user,
-                product_id=validated_data["product_id"],
-                notification_type=COMMENT_PRODUCT,
-            )
-            comment = Comment.objects.create(**validated_data)
-            return comment
-        except Exception as e:
-            raise serializers.ValidationError("DATA_INVALID", status.HTTP_404_NOT_FOUND)
+        # try:
+        user = self.context["request"].user
+        validated_data["user_id"] = user
+        Notification.objects.create(
+            create_by=self.context["request"].user,
+            product_id=validated_data["product_id"],
+            notification_type=COMMENT_PRODUCT,
+        )
+        comment = Comment.objects.create(**validated_data)
+        return comment
+
+    # except Exception as e:
+    #     raise serializers.ValidationError("DATA_INVALID", status.HTTP_404_NOT_FOUND)
 
 
 class DetailCommentSerializers(serializers.ModelSerializer):
