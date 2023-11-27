@@ -19,4 +19,12 @@ urlpatterns = [
         "search-product/",
         views.ProductSearchViews.as_view(),
     ),
+    path(
+        "hitory-product/<int:product_id>",
+        views.HistoryProductView.as_view(),
+    ),
+    path(
+        "edit-product/<int:pk>",
+        views.ProductOwnerViews.as_view(),
+    ),
 ]

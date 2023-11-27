@@ -15,6 +15,7 @@ from .serializers import (
     DetailProductSerializers,
 )
 from .models import Product
+from transaction.models import Transaction
 from user.models import User
 
 
@@ -55,7 +56,40 @@ class ProductMeViews(generics.ListAPIView):
         return super().list(request, *args, **kwargs)
 
 
+class HistoryProductView(APIView):
+    @swagger_auto_schema(tags=["product"], operation_summary="History product")
+    def get(self, request, *args, **kwargs):
+        product = Product.objects.filter(
+            is_delete=False, pk=kwargs["product_id"]
+        ).first()
+        if product is None:
+            return Response({"detail": []}, status=status.HTTP_200_OK)
+        serializer = SimpleProductSerializers(product).data
+        deep = True
+        data = [{serializer["product_type"]: serializer}]
+        while deep is True:
+            if serializer["transaction_id"] is not None:
+                transaction = Transaction.objects.filter(
+                    pk=serializer["transaction_id"]
+                ).first()
+                product = Product.objects.filter(
+                    is_delete=False, pk=transaction.product_id.id
+                ).first()
+                serializer = SimpleProductSerializers(product).data
+                data.append({serializer["product_type"]: serializer})
+            else:
+                deep = False
+
+        return Response({"detail": data}, status=status.HTTP_200_OK)
+
+
 # Create your views here.
+class ProductOwnerViews(generics.RetrieveAPIView):
+    queryset = Product.objects.filter(is_delete=False)
+    serializer_class = DetailProductSerializers
+    permission_classes = [IsOwnerProduct, permissions.IsAuthenticated]
+
+
 class ProductViews(viewsets.ModelViewSet):
     # queryset = Product.objects.filter()
     serializer_class = ProductSerializers

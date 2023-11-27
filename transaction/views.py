@@ -226,3 +226,19 @@ class ChangeStatusTransactionView(APIView):
         return Response(
             {"detail": "PRODUCT_NOT_EXISTS"}, status=status.HTTP_400_BAD_REQUEST
         )
+
+
+class DoneTransactionView(APIView):
+    @swagger_auto_schema(tags=["transaction"], operation_summary="Done transaction")
+    def patch(self, request, *args, **kwargs):
+        transaction = Transaction.objects.filter(
+            pk=kwargs["pk"], create_by=request.user
+        ).first()
+        if transaction:
+            transaction.status = DONE
+            transaction.save()
+            return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)
+        else:
+            return Response(
+                {"detail": "TRANSACTION_NOT_EXISTS"}, status=status.HTTP_400_BAD_REQUEST
+            )

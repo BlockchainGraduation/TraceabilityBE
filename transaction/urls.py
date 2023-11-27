@@ -6,6 +6,7 @@ from .views import (
     FilterTransactionViews,
     CreateMultiTransactionViews,
     TransactionMeView,
+    DoneTransactionView,
 )
 
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
     path("filter-transaction", FilterTransactionViews.as_view()),
     path("create-multi-transaction", CreateMultiTransactionViews.as_view()),
     path("accept-transaction/<int:pk>", ChangeStatusTransactionView.as_view()),
+    path("done-transaction/<int:pk>", DoneTransactionView.as_view()),
 ]

@@ -19,8 +19,14 @@ class NotificationMeViews(views.APIView):
         notifications = Notification.objects.filter(create_by=request.user.id).order_by(
             "-create_at"
         )
+        unread = Notification.objects.filter(
+            create_by=request.user.id, active=False
+        ).count()
         return response.Response(
-            {"detail": NotificationSerializer(notifications, many=True).data},
+            {
+                "detail": NotificationSerializer(notifications, many=True).data,
+                "unread": unread,
+            },
             status=status.HTTP_200_OK,
         )
 
