@@ -194,6 +194,19 @@ class TransactionView(generics.CreateAPIView, generics.ListAPIView):
         return [permissions.AllowAny()]
 
 
+class AllTransactionSellMe(generics.ListAPIView):
+    serializer_class = DetailTransactionSerializer
+
+    @swagger_auto_schema(
+        tags=["transaction"], operation_summary="Get All Sell Transaction"
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Transaction.objects.filter(product_id__create_by=self.request.user)
+
+
 class RetrieveTransactionView(generics.RetrieveAPIView):
     queryset = Transaction.objects.all()
     serializer_class = DetailTransactionSerializer
@@ -233,7 +246,7 @@ class ChangeStatusTransactionView(APIView):
                         status=status.HTTP_406_NOT_ACCEPTABLE,
                     )
             else:
-                user = User.objects.filter(pk=transaction.create_by).first()
+                user = User.objects.filter(pk=transaction.create_by.id).first()
                 user.account_balance = user.account_balance - transaction.price
                 product.quantity = product.quantity + transaction.quantity
                 transaction.status = REJECT

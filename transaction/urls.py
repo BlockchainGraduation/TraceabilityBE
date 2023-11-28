@@ -7,6 +7,7 @@ from .views import (
     CreateMultiTransactionViews,
     TransactionMeView,
     DoneTransactionView,
+    AllTransactionSellMe,
 )
 
 urlpatterns = [
@@ -17,4 +18,5 @@ urlpatterns = [
     path("create-multi-transaction", CreateMultiTransactionViews.as_view()),
     path("accept-transaction/<int:pk>", ChangeStatusTransactionView.as_view()),
     path("done-transaction/<int:pk>", DoneTransactionView.as_view()),
+    path("sell-transaction-me", AllTransactionSellMe.as_view()),
 ]
