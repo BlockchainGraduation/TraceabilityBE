@@ -263,7 +263,7 @@ class DoneTransactionView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(tags=["transaction"], operation_summary="Done transaction")
-    def patch(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         transaction = Transaction.objects.filter(
             pk=kwargs["pk"], create_by=request.user
         ).first()

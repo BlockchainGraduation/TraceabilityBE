@@ -41,7 +41,7 @@ class GetFilterCommentView(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["product_id"]
     # search_fields = ["product_id", "user_id"]
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.all().order_by("-create_at")
     serializer_class = DetailCommentSerializers
 
     @swagger_auto_schema(

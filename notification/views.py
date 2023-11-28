@@ -16,11 +16,11 @@ class NotificationMeViews(views.APIView):
         operation_summary="Get notification me",
     )
     def get(self, request, *args, **kwargs):
-        notifications = Notification.objects.filter(create_by=request.user.id).order_by(
-            "-create_at"
-        )
+        notifications = Notification.objects.filter(
+            product_id__create_by=request.user
+        ).order_by("-create_at")
         unread = Notification.objects.filter(
-            create_by=request.user.id, active=False
+            product_id__create_by=request.user, active=False
         ).count()
         return response.Response(
             {
@@ -34,7 +34,7 @@ class NotificationMeViews(views.APIView):
 class DeleteNotificationViews(views.APIView):
     def delete(self, request, *args, **kwargs):
         Notification.objects.filter(
-            create_by=request.user.id, pk=kwargs["pk"]
+            product_id__create_by=request.user.id, pk=kwargs["pk"]
         ).first().delete()
         return response.Response(
             {"detail": "SUCCESS"},
@@ -45,7 +45,7 @@ class DeleteNotificationViews(views.APIView):
 class ActiveNotificationViews(views.APIView):
     def patch(self, request, *args, **kwargs):
         notification = Notification.objects.filter(
-            create_by=request.user.id, pk=kwargs["pk"]
+            product_id__create_by=request.user.id, pk=kwargs["pk"]
         ).first()
         if notification:
             notification.active = True
