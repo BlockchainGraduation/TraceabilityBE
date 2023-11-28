@@ -57,6 +57,11 @@ class TransactionSerializer(serializers.ModelSerializer):
             if cart_id is not None:
                 Cart.objects.filter(pk=cart_id).first().delete()
             user = User.objects.filter(pk=self.context["request"].user.pk).first()
+            user.account_balance = user.account_balance - validated_data["price"]
+            product = Product.objects.filter(pk=validated_data["product_id"].id).first()
+            product.quantity = product.quantity - validated_data["quantity"]
+            product.save()
+            user.save()
             # data = validated_data
             validated_data["create_by"] = self.context["request"].user
             # print(data)

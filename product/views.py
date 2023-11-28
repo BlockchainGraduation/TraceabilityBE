@@ -15,7 +15,7 @@ from .serializers import (
     DetailProductSerializers,
 )
 from .models import Product
-from transaction.models import Transaction
+from transaction.models import Transaction, PENDDING, REJECT, ACCEPT, DONE
 from user.models import User
 
 
@@ -66,7 +66,7 @@ class HistoryProductView(APIView):
             return Response({"detail": []}, status=status.HTTP_200_OK)
         serializer = SimpleProductSerializers(product).data
         deep = True
-        data = [{serializer["product_type"]: serializer}]
+        data = [serializer]
         while deep is True:
             if serializer["transaction_id"] is not None:
                 transaction = Transaction.objects.filter(
@@ -76,7 +76,7 @@ class HistoryProductView(APIView):
                     is_delete=False, pk=transaction.product_id.id
                 ).first()
                 serializer = SimpleProductSerializers(product).data
-                data.append({serializer["product_type"]: serializer})
+                data.append(serializer)
             else:
                 deep = False
 
@@ -88,6 +88,39 @@ class ProductOwnerViews(generics.RetrieveAPIView):
     queryset = Product.objects.filter(is_delete=False)
     serializer_class = DetailProductSerializers
     permission_classes = [IsOwnerProduct, permissions.IsAuthenticated]
+
+
+class ProductStatisticalViews(APIView):
+    @swagger_auto_schema(
+        tags=["product"],
+        operation_summary="Statistical Product",
+    )
+    def get(self, request, *args, **kwargs):
+        transaction_count = Transaction.objects.filter(product_id=kwargs["pk"]).count()
+        pendding_transaction_count = Transaction.objects.filter(
+            product_id=kwargs["pk"], status=PENDDING
+        ).count()
+        reject_transaction_count = Transaction.objects.filter(
+            product_id=kwargs["pk"], status=REJECT
+        ).count()
+        done_transaction_count = Transaction.objects.filter(
+            product_id=kwargs["pk"], status=DONE
+        ).count()
+        accept_transaction_count = Transaction.objects.filter(
+            product_id=kwargs["pk"], status=ACCEPT
+        ).count()
+
+        return Response(
+            {
+                "transaction": {
+                    "transaction_count": transaction_count,
+                    "pendding_transaction_count": pendding_transaction_count,
+                    "reject_transaction_count": reject_transaction_count,
+                    "done_transaction_count": done_transaction_count,
+                    "accept_transaction_count": accept_transaction_count,
+                }
+            }
+        )
 
 
 class ProductViews(viewsets.ModelViewSet):

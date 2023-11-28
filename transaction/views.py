@@ -23,7 +23,7 @@ from user.models import User, RETAILER, FACTORY, DISTRIBUTER
 def check_accept_create_product(request, product_type):
     if request.user.role == DISTRIBUTER and product_type == FACTORY:
         return True
-    if request.user.role == RETAILER and product_type == FACTORY:
+    if request.user.role == RETAILER and product_type == DISTRIBUTER:
         return True
     return False
 
@@ -44,24 +44,37 @@ class CreateMultiTransactionViews(APIView):
     def post(self, request, *args, **kwargs):
         # data = request.data["list_transactions"]
         # result_list = []
+
         if type(request.data["list_transactions"]).__name__ in ("list", "tuple"):
-            for item_data in request.data["list_transactions"]:
-                product = Product.objects.filter(pk=item_data["product_id"]).first()
-                Transaction.objects.create(
-                    quantity=item_data["quantity"],
-                    price=item_data["price"],
-                    product_id=product,
-                    create_by=request.user,
-                )
-                Cart.objects.filter(
-                    pk=item_data["cart_id"], create_by=request.user
-                ).delete()
-            return Response(
-                {
-                    "detail": "CREATED",
-                },
-                status=status.HTTP_201_CREATED,
+            total_price = sum(
+                item["price"] for item in request.data["list_transactions"]
             )
+            if total_price < request.user.account_balance:
+                for item_data in request.data["list_transactions"]:
+                    product = Product.objects.filter(pk=item_data["product_id"]).first()
+                    Transaction.objects.create(
+                        quantity=item_data["quantity"],
+                        price=item_data["price"],
+                        product_id=product,
+                        create_by=request.user,
+                    )
+                    Cart.objects.filter(
+                        pk=item_data["cart_id"], create_by=request.user
+                    ).delete()
+                return Response(
+                    {
+                        "detail": "CREATED",
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+            else:
+                return Response(
+                    {
+                        "detail": "BALANCE_NOT_ENOUGHT",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         else:
             # Handle invalid data
             # Access serializer.errors for details on validation errors
@@ -220,7 +233,12 @@ class ChangeStatusTransactionView(APIView):
                         status=status.HTTP_406_NOT_ACCEPTABLE,
                     )
             else:
+                user = User.objects.filter(pk=transaction.create_by).first()
+                user.account_balance = user.account_balance - transaction.price
+                product.quantity = product.quantity + transaction.quantity
                 transaction.status = REJECT
+                user.save()
+                product.save()
                 transaction.save()
                 return Response({"detail": "OK"}, status=status.HTTP_202_ACCEPTED)
         return Response(
@@ -229,12 +247,18 @@ class ChangeStatusTransactionView(APIView):
 
 
 class DoneTransactionView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     @swagger_auto_schema(tags=["transaction"], operation_summary="Done transaction")
     def patch(self, request, *args, **kwargs):
         transaction = Transaction.objects.filter(
             pk=kwargs["pk"], create_by=request.user
         ).first()
         if transaction:
+            product = Product.objects.filter(pk=transaction.product_id.id).first()
+            user = User.objects.filter(pk=product.create_by.id).first()
+            user.account_balance = user.account_balance + transaction.price
+            user.save()
             transaction.status = DONE
             transaction.save()
             return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)

@@ -27,4 +27,8 @@ urlpatterns = [
         "edit-product/<int:pk>",
         views.ProductOwnerViews.as_view(),
     ),
+    path(
+        "statistical-product/<int:pk>",
+        views.ProductStatisticalViews.as_view(),
+    ),
 ]
