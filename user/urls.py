@@ -28,4 +28,5 @@ urlpatterns = [
     path("user/list", views.GetListUserView.as_view()),
     path("user/confirm", views.ConfirmUserView.as_view()),
     path("user/lock", views.BlackUserView.as_view()),
+    path("user/checkout", views.create_checkout.as_view()),
 ]

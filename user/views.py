@@ -1,6 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.views import APIView
 from .serializers import (
     RegisterSerializer,
@@ -14,6 +15,7 @@ from .serializers import (
     LogoutSerializer,
     ConfirmUserSerializer,
 )
+import stripe
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import generics
 from rest_framework.response import Response
@@ -492,3 +494,44 @@ class BlackUserView(APIView):
                 user.save()
                 return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)
         return Response({"detail": "USER_NOT_EXISTS"}, status=status.HTTP_200_OK)
+
+
+# Checkout
+class create_checkout(APIView):
+    @swagger_auto_schema(
+        tags=["Payment"],
+        operation_summary="Payment",
+    )
+    def post(self, request):
+        YOUR_DOMAIN = "http://localhost:8000/"
+        stripe.api_key = "sk_test_51NpMKLFobSqgGAG31Vf7UDMarMp5Gg0a8umlS4xMZcKiTbGgmRXPhzQlKs5R5xHDA5FtalNIXs3fS4oWUKGRQBap00bWsM3LBr"
+        #
+
+        # intent = stripe.PaymentIntent.create(
+        #     amount=123,
+        #     currency="usd",
+        #     automatic_payment_methods={"enabled": True},
+        # )
+        # return Response(
+        #     data={"tax": 123, "client_secret": intent.client_secret},
+        #     status=status.HTTP_201_CREATED,
+        # )
+        # return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                line_items=[
+                    {
+                        # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+                        "price": "price_1OHr16FobSqgGAG3srNqsz0V",
+                        "quantity": 1,
+                    },
+                ],
+                mode="payment",
+                success_url=YOUR_DOMAIN + "api/paid",
+                cancel_url=YOUR_DOMAIN + "/cancel.html",
+            )
+        except Exception as e:
+            raise AuthenticationFailed("Errr")
+
+        return redirect(checkout_session.url, code=303)
