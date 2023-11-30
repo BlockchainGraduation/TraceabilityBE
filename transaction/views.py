@@ -117,7 +117,7 @@ class FilterTransactionViews(generics.ListAPIView):
 
 class TransactionMeView(generics.ListAPIView):
     # lookup_field = "product_id"
-    queryset = Transaction.objects.filter()
+    queryset = Transaction.objects.filter().order_by("-create_at")
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["status", "create_by", "active"]
     permission_classes = [permissions.IsAuthenticated]
@@ -172,6 +172,7 @@ class TransactionMeView(generics.ListAPIView):
 class TransactionView(generics.CreateAPIView, generics.ListAPIView):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
+
     # lookup_field = "id"
 
     def create(self, request, *args, **kwargs):

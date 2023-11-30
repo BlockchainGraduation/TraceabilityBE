@@ -35,7 +35,7 @@ class IsOwnerProduct(permissions.BasePermission):
 
 
 class ProductMeViews(generics.ListAPIView):
-    queryset = Product.objects.filter(is_delete=False)
+    queryset = Product.objects.filter(is_delete=False).order_by("-create_at")
     filter_backends = [DjangoFilterBackend]
     serializer_class = SimpleProductSerializers
     filterset_fields = ["create_by"]
