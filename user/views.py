@@ -24,12 +24,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .models import User, PENDDING, NONE
+from .models import User, PENDDING, NONE, MEMBER, FACTORY, DISTRIBUTER, RETAILER
 from product.models import Product
 from transaction.models import Transaction, REJECT, ACCEPT, DONE
 from product.serializers import ProductSerializers, SimpleProductSerializers
 from django_filters.rest_framework import DjangoFilterBackend
 from .utils import generate_otp, send_otp_email
+import json
 
 
 def get_tokens_for_user(user):
@@ -87,6 +88,21 @@ class StatisticalView(APIView):
         done_transaction_sales_count = Transaction.objects.filter(
             product_id__create_by=request.user, status=DONE
         ).count()
+
+        # Transaction mounh
+        month_transaction = {}
+        month_product = {}
+
+        for i in range(1, 13):
+            # print(type(str(i)))
+            month_transaction[i] = Transaction.objects.filter(
+                product_id__create_by=request.user, create_at__month=i
+            ).count()
+        for i in range(1, 13):
+            month_product[i] = Product.objects.filter(
+                create_by=request.user, create_at__month=i
+            ).count()
+        # result_json = json.dumps({"month": result_dict})
         return Response(
             {
                 "detail": {
@@ -108,6 +124,67 @@ class StatisticalView(APIView):
                         "pendding_transaction_sales_count": pendding_transaction_sales_count,
                         "reject_transaction_sales_count": reject_transaction_sales_count,
                         "done_transaction_sales_count": done_transaction_sales_count,
+                    },
+                    "month_transaction": month_transaction,
+                    "month_product": month_product,
+                }
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class AdminStatisticalView(APIView):
+    permission_classes = [IsAdminUser]
+
+    @swagger_auto_schema(
+        tags=["user"],
+        operation_summary="Admin Statistical",
+    )
+    def get(self, request):
+        user_total = User.objects.filter(is_superuser=False).count()
+        anonymous_user_total = User.objects.filter(confirm_status=NONE).count()
+        factory_user_total = User.objects.filter(role=FACTORY).count()
+        distributer_user_total = User.objects.filter(role=DISTRIBUTER).count()
+        retailer_user_total = User.objects.filter(role=RETAILER).count()
+
+        # prouduct
+        product_total = Product.objects.all().count()
+        factory_product_total = Product.objects.filter(product_type=FACTORY).count()
+        distributer_product_total = Product.objects.filter(
+            product_type=DISTRIBUTER
+        ).count()
+        retailer_product_total = Product.objects.filter(product_type=RETAILER).count()
+
+        month_user = {}
+        month_product = {}
+
+        for i in range(1, 13):
+            month_user[i] = User.objects.filter(
+                date_joined__month=i, is_superuser=False
+            ).count()
+        for i in range(1, 13):
+            month_product[i] = Product.objects.filter(create_at__month=i).count()
+        # for i in range(1, 13):
+        #     month_product[i] = Product.objects.filter(
+        #         create_by=request.user, create_at__month=i
+        #     ).count()
+        return Response(
+            {
+                "detail": {
+                    "user": {
+                        "user_total": user_total,
+                        "anonymous_user_total": anonymous_user_total,
+                        "factory_user_total": factory_user_total,
+                        "distributer_user_total": distributer_user_total,
+                        "retailer_user_total": retailer_user_total,
+                        "month_user": month_user,
+                    },
+                    "product": {
+                        "product_total": product_total,
+                        "factory_product_total": factory_product_total,
+                        "distributer_product_total": distributer_product_total,
+                        "retailer_product_total": retailer_product_total,
+                        "month_product": month_product,
                     },
                 }
             },

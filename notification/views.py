@@ -16,19 +16,22 @@ class NotificationMeViews(views.APIView):
         operation_summary="Get notification me",
     )
     def get(self, request, *args, **kwargs):
-        notifications = Notification.objects.filter(
-            product_id__create_by=request.user
-        ).order_by("-create_at")
-        unread = Notification.objects.filter(
-            product_id__create_by=request.user, active=False
-        ).count()
-        return response.Response(
-            {
-                "detail": NotificationSerializer(notifications, many=True).data,
-                "unread": unread,
-            },
-            status=status.HTTP_200_OK,
-        )
+        try:
+            notifications = Notification.objects.filter(
+                product_id__create_by=request.user
+            ).order_by("-create_at")
+            unread = Notification.objects.filter(
+                product_id__create_by=request.user, active=False
+            ).count()
+            return response.Response(
+                {
+                    "detail": NotificationSerializer(notifications, many=True).data,
+                    "unread": unread,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except:
+            pass
 
 
 class DeleteNotificationViews(views.APIView):
