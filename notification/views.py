@@ -31,7 +31,12 @@ class NotificationMeViews(views.APIView):
                 status=status.HTTP_200_OK,
             )
         except:
-            pass
+            return response.Response(
+                {
+                    "detail": "DATA_INVALID",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class DeleteNotificationViews(views.APIView):

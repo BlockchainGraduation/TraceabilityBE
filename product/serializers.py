@@ -11,6 +11,7 @@ from product_image.models import ProductImage
 from growup.serializers import GrowUpSerializers
 from detail_description.serializers import DeitaiDescriptionSerializers
 from comment.serializers import CommentSerializers
+from transaction.models import Transaction
 from rest_framework.fields import ListField
 
 
@@ -125,6 +126,13 @@ class ProductSerializers(serializers.ModelSerializer):
                     raise APIException(
                         detail="transaction_id is required",
                     )
+                else:
+                    transaction = Transaction.objects.filter(
+                        pk=checktransaction_id.id
+                    ).first()
+                    transaction.active = True
+                    transaction.save()
+
             uploaded_images = validated_data.pop("uploaded_images")
             validated_data["create_by"] = User.objects.get(
                 pk=self.context["request"].user.pk

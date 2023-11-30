@@ -117,15 +117,15 @@ class FilterTransactionViews(generics.ListAPIView):
 
 class TransactionMeView(generics.ListAPIView):
     # lookup_field = "product_id"
-    queryset = Transaction.objects.all()
+    queryset = Transaction.objects.filter()
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["status", "create_by"]
+    filterset_fields = ["status", "create_by", "active"]
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = DetailTransactionSerializer
 
     @swagger_auto_schema(
         tags=["transaction"],
-        operation_summary="Filter Product",
+        operation_summary="Filter Transaction",
         manual_parameters=[
             openapi.Parameter(
                 "status",
@@ -138,6 +138,12 @@ class TransactionMeView(generics.ListAPIView):
                 in_=openapi.IN_QUERY,
                 description="Lọc theo create_by",
                 type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "active",
+                in_=openapi.IN_QUERY,
+                description="Lọc theo active",
+                type=openapi.TYPE_BOOLEAN,
             ),
         ],
     )
