@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework.views import APIView
 from .serializers import (
     RegisterSerializer,
@@ -581,6 +582,7 @@ class create_checkout(APIView):
     )
     def post(self, request):
         YOUR_DOMAIN = "http://localhost:8000/"
+        token = request.COOKIES["access"]
         stripe.api_key = "sk_test_51NpMKLFobSqgGAG31Vf7UDMarMp5Gg0a8umlS4xMZcKiTbGgmRXPhzQlKs5R5xHDA5FtalNIXs3fS4oWUKGRQBap00bWsM3LBr"
         #
 
@@ -605,10 +607,28 @@ class create_checkout(APIView):
                     },
                 ],
                 mode="payment",
-                success_url=YOUR_DOMAIN + "api/paid",
+                success_url=YOUR_DOMAIN
+                + "api/user/done-checkout?session_id={CHECKOUT_SESSION_ID}&token="
+                + token,
                 cancel_url=YOUR_DOMAIN + "/cancel.html",
             )
         except Exception as e:
             raise AuthenticationFailed("Errr")
 
         return redirect(checkout_session.url, code=303)
+
+
+class payment_successful(APIView):
+    def get(self, request):
+        checkout_session_id = request.GET.get("session_id", None)
+        token = request.GET.get("token", None)
+        valid_data = AccessToken(token)
+
+        data = stripe.checkout.Session.retrieve(
+            checkout_session_id,
+        )
+        user = User.objects.get(id=valid_data["user_id"])
+        user.account_balance = user.account_balance + data.amount_total
+        user.save()
+
+        return redirect("http://localhost:3000/", code=200)

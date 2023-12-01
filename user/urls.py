@@ -30,4 +30,5 @@ urlpatterns = [
     path("user/confirm", views.ConfirmUserView.as_view()),
     path("user/lock", views.BlackUserView.as_view()),
     path("user/checkout", views.create_checkout.as_view()),
+    path("user/done-checkout", views.payment_successful.as_view()),
 ]
