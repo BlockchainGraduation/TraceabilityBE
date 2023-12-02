@@ -31,7 +31,8 @@ from transaction.models import Transaction, REJECT, ACCEPT, DONE
 from product.serializers import ProductSerializers, SimpleProductSerializers
 from django_filters.rest_framework import DjangoFilterBackend
 from .utils import generate_otp, send_otp_email
-import json
+from eth_account import Account
+from utils.blockchain.actor_provider import ActorProvider
 
 
 def get_tokens_for_user(user):
@@ -212,6 +213,10 @@ class ConfirmOTP(APIView):
                 if user:
                     user.set_password(serializer.data["password"])
                     user.is_active = True
+                    account = Account.create()
+                    user.wallet_address = account.address
+                    user.wallet_private_key = account.key.hex()
+
                     user.save()
 
                     return Response(
@@ -532,6 +537,7 @@ class ConfirmUserView(APIView):
         operation_summary="Confirm user by admin",
     )
     def patch(self, request, *args, **kwargs):
+        # try:
         serializes = ConfirmUserSerializer(data=request.data)
         serializes.is_valid(raise_exception=True)
         user = User.objects.filter(pk=serializes.data["user_id"]).first()
@@ -541,13 +547,28 @@ class ConfirmUserView(APIView):
                 user.fullname = user.survey["name"]
                 user.phone = user.survey["phone"] or None
                 user.role = user.survey["user_role"]
+                map_role = {"FACTORY": 1, "DISTRIBUTER": 2, "RETAILER": 3}
+                tx_hash = ActorProvider().create_actor(
+                    str(user.id),
+                    address=user.wallet_address,
+                    role=map_role[user.role],
+                    hash_info="",
+                )
+                user.tx_hash = tx_hash
                 user.save()
                 return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)
             else:
                 user.confirm_status = NONE
                 user.save()
                 return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)
-        return Response({"detail": "USER_NOT_EXISTS"}, status=status.HTTP_200_OK)
+        return Response(
+            {"detail": "USER_NOT_EXISTS"}, status=status.HTTP_400_BAD_REQUEST
+        )
+        # except Exception as e:
+        #     print(e)
+        #     return Response(
+        #         {"detail": "DATA_INVALID"}, status=status.HTTP_400_BAD_REQUEST
+        #     )
 
 
 class BlackUserView(APIView):
@@ -584,18 +605,6 @@ class create_checkout(APIView):
         YOUR_DOMAIN = "http://localhost:8000/"
         token = request.COOKIES["access"]
         stripe.api_key = "sk_test_51NpMKLFobSqgGAG31Vf7UDMarMp5Gg0a8umlS4xMZcKiTbGgmRXPhzQlKs5R5xHDA5FtalNIXs3fS4oWUKGRQBap00bWsM3LBr"
-        #
-
-        # intent = stripe.PaymentIntent.create(
-        #     amount=123,
-        #     currency="usd",
-        #     automatic_payment_methods={"enabled": True},
-        # )
-        # return Response(
-        #     data={"tax": 123, "client_secret": intent.client_secret},
-        #     status=status.HTTP_201_CREATED,
-        # )
-        # return Response(status=status.HTTP_400_BAD_REQUEST)
 
         try:
             checkout_session = stripe.checkout.Session.create(

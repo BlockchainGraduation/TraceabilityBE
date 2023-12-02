@@ -42,6 +42,7 @@ class User(AbstractUser):
     avatar = models.ImageField(upload_to="traceability/", blank=True)
     phone = models.TextField(null=True, default=None)
     wallet_address = models.CharField(max_length=100, null=True, default=None)
+    wallet_private_key = models.CharField(max_length=100, null=True, default=None)
     geographical_address = models.CharField(max_length=100, null=True, default="")
     introduce = models.TextField(default=None, null=True)
     role = models.CharField(choices=ROLE_CHOICE, default=MEMBER)
@@ -52,6 +53,7 @@ class User(AbstractUser):
     survey = models.JSONField(default=dict)
     is_active = models.BooleanField(default=False)
     is_delete = models.BooleanField(default=False)
+    tx_hash = models.CharField(max_length=100, null=True, default=None)
 
     def __str__(self) -> str:
         return self.username
