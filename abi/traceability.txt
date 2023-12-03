@@ -1,4 +1,4 @@
-[
+ [
     {
       "inputs": [
         {
@@ -38,7 +38,7 @@
           "type": "uint256"
         }
       ],
-      "name": "buy_item_on_marketplace",
+      "name": "buyItemOnMarketplace",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -51,7 +51,7 @@
           "type": "string"
         }
       ],
-      "name": "get_transaction_by_id",
+      "name": "getTransactionById",
       "outputs": [
         {
           "components": [
@@ -81,12 +81,12 @@
               "type": "string"
             },
             {
-              "internalType": "enum SupplyChainLib.TransactionStatus",
+              "internalType": "enum TraceabilityLib.TransactionStatus",
               "name": "status",
               "type": "uint8"
             }
           ],
-          "internalType": "struct SupplyChainLib.InfoTransaction",
+          "internalType": "struct TraceabilityLib.InfoTransaction",
           "name": "",
           "type": "tuple"
         }
@@ -100,27 +100,9 @@
           "internalType": "string",
           "name": "product_id",
           "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "owner",
-          "type": "string"
         }
       ],
-      "name": "listing_product",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "product_id",
-          "type": "string"
-        }
-      ],
-      "name": "seek_an_origin",
+      "name": "seekAnOrigin",
       "outputs": [
         {
           "components": [
@@ -132,7 +114,7 @@
                   "type": "string"
                 },
                 {
-                  "internalType": "enum SupplyChainLib.ProductType",
+                  "internalType": "enum TraceabilityLib.ProductType",
                   "name": "product_type",
                   "type": "uint8"
                 },
@@ -167,7 +149,7 @@
                   "type": "string"
                 },
                 {
-                  "internalType": "enum SupplyChainLib.ProductStatus",
+                  "internalType": "enum TraceabilityLib.ProductStatus",
                   "name": "status",
                   "type": "uint8"
                 },
@@ -177,7 +159,7 @@
                   "type": "string"
                 }
               ],
-              "internalType": "struct SupplyChainLib.ProductInfo",
+              "internalType": "struct TraceabilityLib.ProductInfo",
               "name": "productInfo",
               "type": "tuple"
             },
@@ -194,7 +176,7 @@
                   "type": "address"
                 },
                 {
-                  "internalType": "enum SupplyChainLib.Role",
+                  "internalType": "enum TraceabilityLib.Role",
                   "name": "role",
                   "type": "uint8"
                 },
@@ -209,7 +191,7 @@
                   "type": "uint256"
                 }
               ],
-              "internalType": "struct SupplyChainLib.ActorInfo",
+              "internalType": "struct TraceabilityLib.ActorInfo",
               "name": "ownerInfo",
               "type": "tuple"
             },
@@ -241,17 +223,17 @@
                   "type": "string"
                 },
                 {
-                  "internalType": "enum SupplyChainLib.TransactionStatus",
+                  "internalType": "enum TraceabilityLib.TransactionStatus",
                   "name": "status",
                   "type": "uint8"
                 }
               ],
-              "internalType": "struct SupplyChainLib.InfoTransaction",
+              "internalType": "struct TraceabilityLib.InfoTransaction",
               "name": "transactionInfo",
               "type": "tuple"
             }
           ],
-          "internalType": "struct SupplyChainLib.OriginInfo[]",
+          "internalType": "struct TraceabilityLib.OriginInfo[]",
           "name": "originInfos",
           "type": "tuple[]"
         }
@@ -267,12 +249,12 @@
           "type": "string"
         },
         {
-          "internalType": "enum SupplyChainLib.TransactionStatus",
+          "internalType": "enum TraceabilityLib.TransactionStatus",
           "name": "status",
           "type": "uint8"
         }
       ],
-      "name": "update_status_transaction",
+      "name": "updateStatusTransaction",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

@@ -7,76 +7,17 @@
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "name": "actors",
-      "outputs": [
-        {
           "internalType": "string",
           "name": "id",
           "type": "string"
-        },
-        {
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "internalType": "enum SupplyChainLib.Role",
-          "name": "role",
-          "type": "uint8"
-        },
-        {
-          "internalType": "string",
-          "name": "hash_info",
-          "type": "string"
-        },
-        {
-          "internalType": "uint256",
-          "name": "balance",
-          "type": "uint256"
         }
       ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "",
-          "type": "string"
-        }
-      ],
-      "name": "actors_ms",
+      "name": "checkActorExist",
       "outputs": [
         {
-          "internalType": "string",
-          "name": "id",
-          "type": "string"
-        },
-        {
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "internalType": "enum SupplyChainLib.Role",
-          "name": "role",
-          "type": "uint8"
-        },
-        {
-          "internalType": "string",
-          "name": "hash_info",
-          "type": "string"
-        },
-        {
-          "internalType": "uint256",
-          "name": "balance",
-          "type": "uint256"
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
         }
       ],
       "stateMutability": "view",
@@ -95,7 +36,7 @@
           "type": "address"
         },
         {
-          "internalType": "enum SupplyChainLib.Role",
+          "internalType": "enum TraceabilityLib.Role",
           "name": "role",
           "type": "uint8"
         },
@@ -120,7 +61,7 @@
               "type": "address"
             },
             {
-              "internalType": "enum SupplyChainLib.Role",
+              "internalType": "enum TraceabilityLib.Role",
               "name": "role",
               "type": "uint8"
             },
@@ -135,7 +76,7 @@
               "type": "uint256"
             }
           ],
-          "internalType": "struct SupplyChainLib.ActorInfo",
+          "internalType": "struct TraceabilityLib.ActorInfo",
           "name": "",
           "type": "tuple"
         }
@@ -156,7 +97,7 @@
           "type": "uint256"
         }
       ],
-      "name": "deposited",
+      "name": "deposit",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -164,12 +105,12 @@
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "address_Actor",
-          "type": "address"
+          "internalType": "string",
+          "name": "id",
+          "type": "string"
         }
       ],
-      "name": "get_Actor_by_address",
+      "name": "getActorById",
       "outputs": [
         {
           "components": [
@@ -184,7 +125,7 @@
               "type": "address"
             },
             {
-              "internalType": "enum SupplyChainLib.Role",
+              "internalType": "enum TraceabilityLib.Role",
               "name": "role",
               "type": "uint8"
             },
@@ -199,7 +140,7 @@
               "type": "uint256"
             }
           ],
-          "internalType": "struct SupplyChainLib.ActorInfo",
+          "internalType": "struct TraceabilityLib.ActorInfo",
           "name": "",
           "type": "tuple"
         }
@@ -210,123 +151,17 @@
     {
       "inputs": [
         {
-          "internalType": "string",
-          "name": "id",
-          "type": "string"
-        }
-      ],
-      "name": "get_Actor_by_id",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "string",
-              "name": "id",
-              "type": "string"
-            },
-            {
-              "internalType": "address",
-              "name": "owner",
-              "type": "address"
-            },
-            {
-              "internalType": "enum SupplyChainLib.Role",
-              "name": "role",
-              "type": "uint8"
-            },
-            {
-              "internalType": "string",
-              "name": "hash_info",
-              "type": "string"
-            },
-            {
-              "internalType": "uint256",
-              "name": "balance",
-              "type": "uint256"
-            }
-          ],
-          "internalType": "struct SupplyChainLib.ActorInfo",
-          "name": "",
-          "type": "tuple"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "get_list_Actor",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "string",
-              "name": "id",
-              "type": "string"
-            },
-            {
-              "internalType": "address",
-              "name": "owner",
-              "type": "address"
-            },
-            {
-              "internalType": "enum SupplyChainLib.Role",
-              "name": "role",
-              "type": "uint8"
-            },
-            {
-              "internalType": "string",
-              "name": "hash_info",
-              "type": "string"
-            },
-            {
-              "internalType": "uint256",
-              "name": "balance",
-              "type": "uint256"
-            }
-          ],
-          "internalType": "struct SupplyChainLib.ActorInfo[]",
-          "name": "",
-          "type": "tuple[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "list_Actor",
-      "outputs": [
-        {
-          "internalType": "string",
-          "name": "id",
-          "type": "string"
-        },
-        {
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "internalType": "enum SupplyChainLib.Role",
+          "internalType": "enum TraceabilityLib.Role",
           "name": "role",
           "type": "uint8"
-        },
+        }
+      ],
+      "name": "getIdsByRole",
+      "outputs": [
         {
-          "internalType": "string",
-          "name": "hash_info",
-          "type": "string"
-        },
-        {
-          "internalType": "uint256",
-          "name": "balance",
-          "type": "uint256"
+          "internalType": "string[]",
+          "name": "",
+          "type": "string[]"
         }
       ],
       "stateMutability": "view",
@@ -345,7 +180,7 @@
           "type": "string"
         }
       ],
-      "name": "update_actor_hash_info",
+      "name": "updateActorHashInfo",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -363,7 +198,7 @@
           "type": "uint256"
         }
       ],
-      "name": "withdraw_balance",
+      "name": "withdrawBalance",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
