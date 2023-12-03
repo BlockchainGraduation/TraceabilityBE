@@ -1,9 +1,24 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+import stripe
+from django.shortcuts import redirect
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from eth_account import Account
+from rest_framework import generics
+from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+from blockchain_web3.actor_provider import ActorProvider
+from product.models import Product
+from product.serializers import SimpleProductSerializers
+from transaction.models import Transaction, REJECT, ACCEPT, DONE
+from .models import User, PENDDING, NONE, FACTORY, DISTRIBUTER, RETAILER
 from .serializers import (
     RegisterSerializer,
     RegisterRuleSerializer,
@@ -16,23 +31,7 @@ from .serializers import (
     LogoutSerializer,
     ConfirmUserSerializer,
 )
-import stripe
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-from .models import User, PENDDING, NONE, MEMBER, FACTORY, DISTRIBUTER, RETAILER
-from product.models import Product
-from transaction.models import Transaction, REJECT, ACCEPT, DONE
-from product.serializers import ProductSerializers, SimpleProductSerializers
-from django_filters.rest_framework import DjangoFilterBackend
 from .utils import generate_otp, send_otp_email
-from eth_account import Account
-from utils.blockchain.actor_provider import ActorProvider
 
 
 def get_tokens_for_user(user):
@@ -42,6 +41,35 @@ def get_tokens_for_user(user):
         "refresh": str(refresh),
         "access": str(refresh.access_token),
     }
+
+
+class TotalUserView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        tags=["user"],
+        operation_summary="Admin Statistical",
+    )
+    def get(self, request):
+        user_total = User.objects.filter(is_superuser=False).count()
+        anonymous_user_total = User.objects.filter(confirm_status=NONE).count()
+        factory_user_total = User.objects.filter(role=FACTORY).count()
+        distributer_user_total = User.objects.filter(role=DISTRIBUTER).count()
+        retailer_user_total = User.objects.filter(role=RETAILER).count()
+        return Response(
+            {
+                "detail": {
+                    "user": {
+                        "user_total": user_total,
+                        "anonymous_user_total": anonymous_user_total,
+                        "factory_user_total": factory_user_total,
+                        "distributer_user_total": distributer_user_total,
+                        "retailer_user_total": retailer_user_total,
+                    }
+                }
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class StatisticalView(APIView):
@@ -129,35 +157,6 @@ class StatisticalView(APIView):
                     },
                     "month_transaction": month_transaction,
                     "month_product": month_product,
-                }
-            },
-            status=status.HTTP_200_OK,
-        )
-
-
-class TotalUserView(APIView):
-    permission_classes = [AllowAny]
-
-    @swagger_auto_schema(
-        tags=["user"],
-        operation_summary="Total User Statistical",
-    )
-    def get(self, request):
-        user_total = User.objects.filter(is_superuser=False).count()
-        anonymous_user_total = User.objects.filter(confirm_status=NONE).count()
-        factory_user_total = User.objects.filter(role=FACTORY).count()
-        distributer_user_total = User.objects.filter(role=DISTRIBUTER).count()
-        retailer_user_total = User.objects.filter(role=RETAILER).count()
-        return Response(
-            {
-                "detail": {
-                    "user": {
-                        "user_total": user_total,
-                        "anonymous_user_total": anonymous_user_total,
-                        "factory_user_total": factory_user_total,
-                        "distributer_user_total": distributer_user_total,
-                        "retailer_user_total": retailer_user_total,
-                    }
                 }
             },
             status=status.HTTP_200_OK,
@@ -576,11 +575,12 @@ class ConfirmUserView(APIView):
                 user.fullname = user.survey["name"]
                 user.phone = user.survey["phone"] or None
                 user.role = user.survey["user_role"]
-                map_role = {"FACTORY": 1, "DISTRIBUTER": 2, "RETAILER": 3}
-                tx_hash = ActorProvider().create_actor(
-                    str(user.id),
+                map_role = {"FACTORY": 0, "DISTRIBUTER": 1, "RETAILER": 2}
+                actor = ActorProvider()
+                tx_hash = actor.create_actor(
+                    user_id=str(user.id),
                     address=user.wallet_address,
-                    role=map_role[user.role],
+                    role=int(map_role[user.role]),
                     hash_info="",
                 )
                 user.tx_hash = tx_hash
@@ -667,6 +667,7 @@ class payment_successful(APIView):
         )
         user = User.objects.get(id=valid_data["user_id"])
         user.account_balance = user.account_balance + data.amount_total
+        ActorProvider().deposited(user.id, data.amount_total)
         user.save()
 
         return redirect("http://localhost:3000/", code=200)

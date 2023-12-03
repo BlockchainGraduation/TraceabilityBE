@@ -2,8 +2,10 @@ from rest_framework import serializers
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import APIException
+
+from blockchain_web3.product_provider import ProductProvider
 from .models import Product
-from user.models import User, FACTORY
+from user.models import User, FACTORY, RETAILER, DISTRIBUTER
 from rest_framework.decorators import parser_classes
 from rest_framework.parsers import MultiPartParser
 from product_image.serializers import ProductImageSerializers
@@ -121,14 +123,14 @@ class ProductSerializers(serializers.ModelSerializer):
             )
         else:
             if self.context["request"].user.role != FACTORY:
-                checktransaction_id = validated_data.get("transaction_id", None)
-                if checktransaction_id is None:
+                check_transaction_id = validated_data.get("transaction_id", "")
+                if check_transaction_id is None or check_transaction_id == "":
                     raise APIException(
                         detail="transaction_id is required",
                     )
                 else:
                     transaction = Transaction.objects.filter(
-                        pk=checktransaction_id.id
+                        pk=check_transaction_id.id
                     ).first()
                     transaction.active = True
                     transaction.save()
@@ -138,6 +140,17 @@ class ProductSerializers(serializers.ModelSerializer):
                 pk=self.context["request"].user.pk
             )
             product = Product.objects.create(**validated_data)
+            map_type = {FACTORY: 1, DISTRIBUTER: 2, RETAILER: 3}
+            tx_hash = ProductProvider().create_product(
+                product_id=product.id,
+                product_type=map_type[self.context["request"].user.role],
+                quantity=product.quantity,
+                price=product.price,
+                hash_info="",
+                trans_id=check_transaction_id,
+            )
+            product.tx_hash = tx_hash
+            product.save()
             for image in uploaded_images:
                 ProductImage.objects.create(product=product, image=image)
             return product

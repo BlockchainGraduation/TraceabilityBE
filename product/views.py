@@ -1,22 +1,23 @@
-from django.shortcuts import render
-from rest_framework import viewsets
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters
-from rest_framework import permissions
-from rest_framework import generics
-from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import filters
+from rest_framework import generics
+from rest_framework import permissions
+from rest_framework import status
+from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from blockchain_web3.product_provider import ProductProvider
+from transaction.models import Transaction, PENDDING, REJECT, ACCEPT, DONE
+from .models import Product
 from .serializers import (
     ProductSerializers,
     SimpleProductSerializers,
     DetailProductSerializers,
 )
-from .models import Product
-from transaction.models import Transaction, PENDDING, REJECT, ACCEPT, DONE
-from user.models import User
 
 
 class IsOwnerProduct(permissions.BasePermission):
@@ -159,6 +160,20 @@ class ProductViews(viewsets.ModelViewSet):
                 return self.detail_serializer_class
 
         return super(viewsets.ModelViewSet, self).get_serializer_class()
+
+    def partial_update(self, request, *args, **kwargs):
+        super().partial_update(request, args, kwargs)
+        product = Product.objects.get(id=kwargs["pk"])
+        tx_hash = ProductProvider().update_product(
+            product_id=product.id,
+            hash_info="",
+            quantity=product.quantity,
+            price=product.price,
+            status=1 if product.active else 0,
+        )
+        product.tx_hash = tx_hash
+        product.save()
+        return HttpResponse("SUCCESS")
 
 
 class ProductTypeViews(generics.ListAPIView):
