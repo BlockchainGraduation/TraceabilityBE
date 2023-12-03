@@ -135,6 +135,35 @@ class StatisticalView(APIView):
         )
 
 
+class TotalUserView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        tags=["user"],
+        operation_summary="Total User Statistical",
+    )
+    def get(self, request):
+        user_total = User.objects.filter(is_superuser=False).count()
+        anonymous_user_total = User.objects.filter(confirm_status=NONE).count()
+        factory_user_total = User.objects.filter(role=FACTORY).count()
+        distributer_user_total = User.objects.filter(role=DISTRIBUTER).count()
+        retailer_user_total = User.objects.filter(role=RETAILER).count()
+        return Response(
+            {
+                "detail": {
+                    "user": {
+                        "user_total": user_total,
+                        "anonymous_user_total": anonymous_user_total,
+                        "factory_user_total": factory_user_total,
+                        "distributer_user_total": distributer_user_total,
+                        "retailer_user_total": retailer_user_total,
+                    }
+                }
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
 class AdminStatisticalView(APIView):
     permission_classes = [IsAdminUser]
 

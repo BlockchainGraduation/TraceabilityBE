@@ -53,7 +53,6 @@ class Web3Provider(object):
             transaction, settings.PRIVATE_KEY_SYSTEM
         )
         tx_hash = self.w3.eth.send_raw_transaction(signed_transaction.rawTransaction)
-
         receipt = self.wait_for_transaction_receipt(tx_hash)
         print(receipt)
         if receipt["status"] == 0:
