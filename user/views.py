@@ -667,7 +667,7 @@ class payment_successful(APIView):
         )
         user = User.objects.get(id=valid_data["user_id"])
         user.account_balance = user.account_balance + data.amount_total
-        ActorProvider().deposited(user.id, data.amount_total)
+        ActorProvider().deposited(str(user.id), data.amount_total)
         user.save()
 
         return redirect("http://localhost:3000/", code=200)

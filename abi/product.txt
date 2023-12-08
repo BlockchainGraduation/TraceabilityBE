@@ -248,6 +248,11 @@
           "type": "uint256"
         },
         {
+          "internalType": "enum TraceabilityLib.ProductStatus",
+          "name": "status",
+          "type": "uint8"
+        },
+        {
           "internalType": "string",
           "name": "hash_info",
           "type": "string"
@@ -313,24 +318,6 @@
           "type": "tuple"
         }
       ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "id",
-          "type": "string"
-        },
-        {
-          "internalType": "enum TraceabilityLib.ProductStatus",
-          "name": "status",
-          "type": "uint8"
-        }
-      ],
-      "name": "updateStatusProduct",
-      "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     }

@@ -122,8 +122,8 @@ class ProductSerializers(serializers.ModelSerializer):
                 detail="BLACK_USER",
             )
         else:
+            check_transaction_id = validated_data.get("transaction_id", "")
             if self.context["request"].user.role != FACTORY:
-                check_transaction_id = validated_data.get("transaction_id", "")
                 if check_transaction_id is None or check_transaction_id == "":
                     raise APIException(
                         detail="transaction_id is required",
@@ -141,13 +141,20 @@ class ProductSerializers(serializers.ModelSerializer):
             )
             product = Product.objects.create(**validated_data)
             map_type = {FACTORY: 1, DISTRIBUTER: 2, RETAILER: 3}
+            if check_transaction_id:
+                check_transaction_id = str(check_transaction_id.id)
+            else:
+                check_transaction_id = ""
+
             tx_hash = ProductProvider().create_product(
-                product_id=product.id,
+                product_id=str(product.id),
                 product_type=map_type[self.context["request"].user.role],
                 quantity=product.quantity,
                 price=product.price,
                 hash_info="",
                 trans_id=check_transaction_id,
+                owner=str(self.context["request"].user.id),
+                status=0,
             )
             product.tx_hash = tx_hash
             product.save()

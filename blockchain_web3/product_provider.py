@@ -6,7 +6,7 @@ from django.conf import settings
 
 class ProductProvider(Web3Provider):
     def __init__(self):
-        with open("./app/abi/actor.txt", "r", encoding="utf-8") as f:
+        with open("./abi/product.txt", "r", encoding="utf-8") as f:
             abi = f.read()
 
         factory_abi = json.loads(abi)
@@ -42,9 +42,9 @@ class ProductProvider(Web3Provider):
         tx_hash = self.sign_and_send_transaction(function)
         return tx_hash
 
-    def update_product(self, product_id, product_type, price, quantity, hash_info):
+    def update_product(self, product_id, price, quantity, status, hash_info):
         function = self.contract.functions.update(
-            product_id, product_type, price, quantity, hash_info
+            product_id, price, quantity, status, hash_info
         )
         tx_hash = self.sign_and_send_transaction(function)
         return tx_hash

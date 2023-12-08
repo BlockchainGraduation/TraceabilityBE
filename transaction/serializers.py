@@ -1,12 +1,13 @@
 from rest_framework import serializers
-from .models import Transaction
-from product.models import Product
 from rest_framework.exceptions import APIException
-from user.models import User
+
+from blockchain_web3.traceability import TraceabilityProvider
 from cart.models import Cart
-from product.serializers import SimpleProductSerializers, ProductSerializers
+from product.models import Product
+from product.serializers import SimpleProductSerializers
+from user.models import User
 from user.serializers import ResponseUserSerializer
-from product.serializers import TrackListingProductField
+from .models import Transaction
 
 
 # from user.serializers import ResponseUserDetailSerializer
@@ -70,7 +71,17 @@ class TransactionSerializer(serializers.ModelSerializer):
             #     if product.quantity >= request.data["product_id"]:
             #         return super().create(request, *args, **kwargs)
             #     print(product.quantity)
-            return super().create(validated_data)
+
+            result = super().create(validated_data)
+            tx_hash = TraceabilityProvider().buy_product(
+                product_id=str(product.id),
+                id_trans=str(result.id),
+                buyer=str(self.context["request"].user.id),
+                quantity=validated_data["quantity"],
+            )
+            result.tx_hash = tx_hash
+            result.save()
+            return result
 
 
 class ItemMultiTransactionSerializer(serializers.ModelSerializer):
