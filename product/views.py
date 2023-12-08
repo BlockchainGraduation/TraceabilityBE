@@ -90,6 +90,13 @@ class ProductOwnerViews(generics.RetrieveAPIView):
     serializer_class = DetailProductSerializers
     permission_classes = [IsOwnerProduct, permissions.IsAuthenticated]
 
+    @swagger_auto_schema(
+        tags=["product"],
+        operation_summary="Edit Product",
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
 
 class ProductStatisticalViews(APIView):
     @swagger_auto_schema(
