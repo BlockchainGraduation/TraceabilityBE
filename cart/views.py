@@ -17,7 +17,7 @@ class IsOwnerCart(permissions.BasePermission):
         # print(view.kwargs["pk"])
         # print("user", request.user.id)
         # superuser = request.user.is_superuser
-        cart = Cart.objects.filter(pk=pk, create_by=request.user.id).first()
+        cart = Cart.objects.filter(pk=pk, create_by=request.user).first()
         return True if cart else False
 
 

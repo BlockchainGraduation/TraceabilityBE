@@ -2,8 +2,10 @@ from rest_framework import serializers
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import APIException
+
+from blockchain_web3.product_provider import ProductProvider
 from .models import Product
-from user.models import User, FACTORY
+from user.models import User, FACTORY, RETAILER, DISTRIBUTER
 from rest_framework.decorators import parser_classes
 from rest_framework.parsers import MultiPartParser
 from product_image.serializers import ProductImageSerializers
@@ -11,6 +13,7 @@ from product_image.models import ProductImage
 from growup.serializers import GrowUpSerializers
 from detail_description.serializers import DeitaiDescriptionSerializers
 from comment.serializers import CommentSerializers
+from transaction.models import Transaction
 from rest_framework.fields import ListField
 
 
@@ -119,17 +122,42 @@ class ProductSerializers(serializers.ModelSerializer):
                 detail="BLACK_USER",
             )
         else:
+            check_transaction_id = validated_data.get("transaction_id", "")
             if self.context["request"].user.role != FACTORY:
-                checktransaction_id = validated_data.get("transaction_id", None)
-                if checktransaction_id is None:
+                if check_transaction_id is None or check_transaction_id == "":
                     raise APIException(
                         detail="transaction_id is required",
                     )
+                else:
+                    transaction = Transaction.objects.filter(
+                        pk=check_transaction_id.id
+                    ).first()
+                    transaction.active = True
+                    transaction.save()
+
             uploaded_images = validated_data.pop("uploaded_images")
             validated_data["create_by"] = User.objects.get(
                 pk=self.context["request"].user.pk
             )
             product = Product.objects.create(**validated_data)
+            map_type = {FACTORY: 1, DISTRIBUTER: 2, RETAILER: 3}
+            if check_transaction_id:
+                check_transaction_id = str(check_transaction_id.id)
+            else:
+                check_transaction_id = ""
+
+            tx_hash = ProductProvider().create_product(
+                product_id=str(product.id),
+                product_type=map_type[self.context["request"].user.role],
+                quantity=product.quantity,
+                price=product.price,
+                hash_info="",
+                trans_id=check_transaction_id,
+                owner=str(self.context["request"].user.id),
+                status=0,
+            )
+            product.tx_hash = tx_hash
+            product.save()
             for image in uploaded_images:
                 ProductImage.objects.create(product=product, image=image)
             return product

@@ -25,7 +25,7 @@ class Transaction(models.Model):
     quantity = models.IntegerField()
     price = models.IntegerField()
     active = models.BooleanField(default=False)
-    status = models.CharField(choices=STATUS_CHOICE, default=PENDDING)
+    status = models.CharField(choices=STATUS_CHOICE, default=PENDDING, max_length=255)
     is_reject = models.BooleanField(default=False)
     create_at = models.DateTimeField(auto_now_add=True)
 

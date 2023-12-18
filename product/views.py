@@ -1,21 +1,23 @@
-from django.shortcuts import render
-from rest_framework import viewsets
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters
-from rest_framework import permissions
-from rest_framework import generics
-from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import filters
+from rest_framework import generics
+from rest_framework import permissions
+from rest_framework import status
+from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from blockchain_web3.product_provider import ProductProvider
+from transaction.models import Transaction, PENDDING, REJECT, ACCEPT, DONE
+from .models import Product
 from .serializers import (
     ProductSerializers,
     SimpleProductSerializers,
     DetailProductSerializers,
 )
-from .models import Product
-from user.models import User
 
 
 class IsOwnerProduct(permissions.BasePermission):
@@ -34,7 +36,7 @@ class IsOwnerProduct(permissions.BasePermission):
 
 
 class ProductMeViews(generics.ListAPIView):
-    queryset = Product.objects.filter(is_delete=False)
+    queryset = Product.objects.filter(is_delete=False).order_by("-create_at")
     filter_backends = [DjangoFilterBackend]
     serializer_class = SimpleProductSerializers
     filterset_fields = ["create_by"]
@@ -55,7 +57,80 @@ class ProductMeViews(generics.ListAPIView):
         return super().list(request, *args, **kwargs)
 
 
+class HistoryProductView(APIView):
+    @swagger_auto_schema(tags=["product"], operation_summary="History product")
+    def get(self, request, *args, **kwargs):
+        product = Product.objects.filter(
+            is_delete=False, pk=kwargs["product_id"]
+        ).first()
+        if product is None:
+            return Response({"detail": []}, status=status.HTTP_200_OK)
+        serializer = SimpleProductSerializers(product).data
+        deep = True
+        data = [serializer]
+        while deep is True:
+            if serializer["transaction_id"] is not None:
+                transaction = Transaction.objects.filter(
+                    pk=serializer["transaction_id"]
+                ).first()
+                product = Product.objects.filter(
+                    is_delete=False, pk=transaction.product_id.id
+                ).first()
+                serializer = SimpleProductSerializers(product).data
+                data.append(serializer)
+            else:
+                deep = False
+
+        return Response({"detail": data}, status=status.HTTP_200_OK)
+
+
 # Create your views here.
+class ProductOwnerViews(generics.RetrieveAPIView):
+    queryset = Product.objects.filter(is_delete=False)
+    serializer_class = DetailProductSerializers
+    permission_classes = [IsOwnerProduct, permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        tags=["product"],
+        operation_summary="Edit Product",
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+
+class ProductStatisticalViews(APIView):
+    @swagger_auto_schema(
+        tags=["product"],
+        operation_summary="Statistical Product",
+    )
+    def get(self, request, *args, **kwargs):
+        transaction_count = Transaction.objects.filter(product_id=kwargs["pk"]).count()
+        pendding_transaction_count = Transaction.objects.filter(
+            product_id=kwargs["pk"], status=PENDDING
+        ).count()
+        reject_transaction_count = Transaction.objects.filter(
+            product_id=kwargs["pk"], status=REJECT
+        ).count()
+        done_transaction_count = Transaction.objects.filter(
+            product_id=kwargs["pk"], status=DONE
+        ).count()
+        accept_transaction_count = Transaction.objects.filter(
+            product_id=kwargs["pk"], status=ACCEPT
+        ).count()
+
+        return Response(
+            {
+                "transaction": {
+                    "transaction_count": transaction_count,
+                    "pendding_transaction_count": pendding_transaction_count,
+                    "reject_transaction_count": reject_transaction_count,
+                    "done_transaction_count": done_transaction_count,
+                    "accept_transaction_count": accept_transaction_count,
+                }
+            }
+        )
+
+
 class ProductViews(viewsets.ModelViewSet):
     # queryset = Product.objects.filter()
     serializer_class = ProductSerializers
@@ -92,6 +167,21 @@ class ProductViews(viewsets.ModelViewSet):
                 return self.detail_serializer_class
 
         return super(viewsets.ModelViewSet, self).get_serializer_class()
+
+    def partial_update(self, request, *args, **kwargs):
+        super().partial_update(request, args, kwargs)
+        product = Product.objects.get(id=kwargs["pk"])
+        status = 1 if product.active else 0
+        tx_hash = ProductProvider().update_product(
+            product_id=str(product.id),
+            hash_info="",
+            quantity=product.quantity,
+            price=product.price,
+            status=status,
+        )
+        product.tx_hash = tx_hash
+        product.save()
+        return HttpResponse("SUCCESS")
 
 
 class ProductTypeViews(generics.ListAPIView):

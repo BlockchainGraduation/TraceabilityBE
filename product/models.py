@@ -14,18 +14,19 @@ class Product(models.Model):
     transaction_id = models.ForeignKey(
         "transaction.Transaction", on_delete=models.PROTECT, null=True, default=None
     )
-    name = models.CharField()
+    name = models.CharField(max_length=255)
     avatar = models.ImageField(upload_to="traceability/", blank=True)
-    description = models.TextField()
+    description = models.TextField(max_length=255)
     # banner = models.ManyToManyField("image.Image")
     price = models.IntegerField()
     quantity = models.IntegerField()
-    product_type = models.CharField()
+    product_type = models.CharField(max_length=255)
     # product_status = models.CharField()
     active = models.BooleanField(default=False)
     is_delete = models.BooleanField(default=False)
     create_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    tx_hash = models.CharField(max_length=100, null=True)
 
     def __str__(self):
         return self.name

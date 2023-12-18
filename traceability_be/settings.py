@@ -183,7 +183,12 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
+    "EXCEPTION_HANDLER": "utils.custom_exception_handler.custom_exception_handler",
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+    ],
 }
+
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
@@ -264,3 +269,11 @@ DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 # )
 
 # STATICFILES_FINDERS = ("djangobower.finders.BowerFinder",)
+
+# blockchain
+WEB3_PROVIDER = "https://goerli-rollup.arbitrum.io/rpc"
+ADDRESS_CONTRACT_ACTOR_MANAGER = "0x4ab8483Fcf00C9d7cD3ed9e0Aa3CE03E3e604EfE"
+ADDRESS_CONTRACT_PRODUCT_MANAGER = "0xB1CBf48819c1d80bbDc61fF567dC26C1468F41bc"
+ADDRESS_CONTRACT_TRACEBILITY = "0x4896cc48e9554f2A6B54A1011F19630CCAbd90b0"
+CHAIN_ID = 421613
+PRIVATE_KEY_SYSTEM = "2bd81d7cace245abc1a7e981075332251823b56a136c0154187cd8a0746ed84a"

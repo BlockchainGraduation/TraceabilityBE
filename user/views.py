@@ -1,7 +1,24 @@
-from django.shortcuts import render
-from django.contrib.auth import authenticate
+import stripe
+from django.shortcuts import redirect
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from eth_account import Account
+from rest_framework import generics
+from rest_framework import status
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+from blockchain_web3.actor_provider import ActorProvider
+from product.models import Product
+from product.serializers import SimpleProductSerializers
+from transaction.models import Transaction, REJECT, ACCEPT, DONE
+from .models import User, PENDDING, NONE, FACTORY, DISTRIBUTER, RETAILER
 from .serializers import (
     RegisterSerializer,
     RegisterRuleSerializer,
@@ -14,19 +31,6 @@ from .serializers import (
     LogoutSerializer,
     ConfirmUserSerializer,
 )
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-from .models import User, PENDDING, NONE
-from product.models import Product
-from transaction.models import Transaction, REJECT, ACCEPT, DONE
-from product.serializers import ProductSerializers, SimpleProductSerializers
-from django_filters.rest_framework import DjangoFilterBackend
 from .utils import generate_otp, send_otp_email
 
 
@@ -37,6 +41,35 @@ def get_tokens_for_user(user):
         "refresh": str(refresh),
         "access": str(refresh.access_token),
     }
+
+
+class TotalUserView(APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        tags=["user"],
+        operation_summary="Admin Statistical",
+    )
+    def get(self, request):
+        user_total = User.objects.filter(is_superuser=False).count()
+        anonymous_user_total = User.objects.filter(confirm_status=NONE).count()
+        factory_user_total = User.objects.filter(role=FACTORY).count()
+        distributer_user_total = User.objects.filter(role=DISTRIBUTER).count()
+        retailer_user_total = User.objects.filter(role=RETAILER).count()
+        return Response(
+            {
+                "detail": {
+                    "user": {
+                        "user_total": user_total,
+                        "anonymous_user_total": anonymous_user_total,
+                        "factory_user_total": factory_user_total,
+                        "distributer_user_total": distributer_user_total,
+                        "retailer_user_total": retailer_user_total,
+                    }
+                }
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class StatisticalView(APIView):
@@ -85,6 +118,21 @@ class StatisticalView(APIView):
         done_transaction_sales_count = Transaction.objects.filter(
             product_id__create_by=request.user, status=DONE
         ).count()
+
+        # Transaction mounh
+        month_transaction = {}
+        month_product = {}
+
+        for i in range(1, 13):
+            # print(type(str(i)))
+            month_transaction[i] = Transaction.objects.filter(
+                product_id__create_by=request.user, create_at__month=i
+            ).count()
+        for i in range(1, 13):
+            month_product[i] = Product.objects.filter(
+                create_by=request.user, create_at__month=i
+            ).count()
+        # result_json = json.dumps({"month": result_dict})
         return Response(
             {
                 "detail": {
@@ -106,6 +154,67 @@ class StatisticalView(APIView):
                         "pendding_transaction_sales_count": pendding_transaction_sales_count,
                         "reject_transaction_sales_count": reject_transaction_sales_count,
                         "done_transaction_sales_count": done_transaction_sales_count,
+                    },
+                    "month_transaction": month_transaction,
+                    "month_product": month_product,
+                }
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class AdminStatisticalView(APIView):
+    permission_classes = [IsAdminUser]
+
+    @swagger_auto_schema(
+        tags=["user"],
+        operation_summary="Admin Statistical",
+    )
+    def get(self, request):
+        user_total = User.objects.filter(is_superuser=False).count()
+        anonymous_user_total = User.objects.filter(confirm_status=NONE).count()
+        factory_user_total = User.objects.filter(role=FACTORY).count()
+        distributer_user_total = User.objects.filter(role=DISTRIBUTER).count()
+        retailer_user_total = User.objects.filter(role=RETAILER).count()
+
+        # prouduct
+        product_total = Product.objects.all().count()
+        factory_product_total = Product.objects.filter(product_type=FACTORY).count()
+        distributer_product_total = Product.objects.filter(
+            product_type=DISTRIBUTER
+        ).count()
+        retailer_product_total = Product.objects.filter(product_type=RETAILER).count()
+
+        month_user = {}
+        month_product = {}
+
+        for i in range(1, 13):
+            month_user[i] = User.objects.filter(
+                date_joined__month=i, is_superuser=False
+            ).count()
+        for i in range(1, 13):
+            month_product[i] = Product.objects.filter(create_at__month=i).count()
+        # for i in range(1, 13):
+        #     month_product[i] = Product.objects.filter(
+        #         create_by=request.user, create_at__month=i
+        #     ).count()
+        return Response(
+            {
+                "detail": {
+                    "user": {
+                        "user_total": user_total,
+                        "anonymous_user_total": anonymous_user_total,
+                        "factory_user_total": factory_user_total,
+                        "distributer_user_total": distributer_user_total,
+                        "retailer_user_total": retailer_user_total,
+                        "month_user": month_user,
+                    },
+                    "product": {
+                        "product_total": product_total,
+                        "factory_product_total": factory_product_total,
+                        "distributer_product_total": distributer_product_total,
+                        "retailer_product_total": retailer_product_total,
+                        "month_product": month_product,
                     },
                 }
             },
@@ -132,6 +241,10 @@ class ConfirmOTP(APIView):
                 if user:
                     user.set_password(serializer.data["password"])
                     user.is_active = True
+                    account = Account.create()
+                    user.wallet_address = account.address
+                    user.wallet_private_key = account.key.hex()
+
                     user.save()
 
                     return Response(
@@ -452,6 +565,7 @@ class ConfirmUserView(APIView):
         operation_summary="Confirm user by admin",
     )
     def patch(self, request, *args, **kwargs):
+        # try:
         serializes = ConfirmUserSerializer(data=request.data)
         serializes.is_valid(raise_exception=True)
         user = User.objects.filter(pk=serializes.data["user_id"]).first()
@@ -461,13 +575,29 @@ class ConfirmUserView(APIView):
                 user.fullname = user.survey["name"]
                 user.phone = user.survey["phone"] or None
                 user.role = user.survey["user_role"]
+                map_role = {"FACTORY": 0, "DISTRIBUTER": 1, "RETAILER": 2}
+                actor = ActorProvider()
+                tx_hash = actor.create_actor(
+                    user_id=str(user.id),
+                    address=user.wallet_address,
+                    role=int(map_role[user.role]),
+                    hash_info="",
+                )
+                user.tx_hash = tx_hash
                 user.save()
                 return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)
             else:
                 user.confirm_status = NONE
                 user.save()
                 return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)
-        return Response({"detail": "USER_NOT_EXISTS"}, status=status.HTTP_200_OK)
+        return Response(
+            {"detail": "USER_NOT_EXISTS"}, status=status.HTTP_400_BAD_REQUEST
+        )
+        # except Exception as e:
+        #     print(e)
+        #     return Response(
+        #         {"detail": "DATA_INVALID"}, status=status.HTTP_400_BAD_REQUEST
+        #     )
 
 
 class BlackUserView(APIView):
@@ -492,3 +622,52 @@ class BlackUserView(APIView):
                 user.save()
                 return Response({"detail": "SUCCESS"}, status=status.HTTP_200_OK)
         return Response({"detail": "USER_NOT_EXISTS"}, status=status.HTTP_200_OK)
+
+
+# Checkout
+class create_checkout(APIView):
+    @swagger_auto_schema(
+        tags=["Payment"],
+        operation_summary="Payment",
+    )
+    def post(self, request):
+        YOUR_DOMAIN = "http://localhost:8000/"
+        token = request.COOKIES["access"]
+        stripe.api_key = "sk_test_51NpMKLFobSqgGAG31Vf7UDMarMp5Gg0a8umlS4xMZcKiTbGgmRXPhzQlKs5R5xHDA5FtalNIXs3fS4oWUKGRQBap00bWsM3LBr"
+
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                line_items=[
+                    {
+                        # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+                        "price": "price_1OHr16FobSqgGAG3srNqsz0V",
+                        "quantity": 1,
+                    },
+                ],
+                mode="payment",
+                success_url=YOUR_DOMAIN
+                + "api/user/done-checkout?session_id={CHECKOUT_SESSION_ID}&token="
+                + token,
+                cancel_url=YOUR_DOMAIN + "/cancel.html",
+            )
+        except Exception as e:
+            raise AuthenticationFailed("Errr")
+
+        return redirect(checkout_session.url, code=303)
+
+
+class payment_successful(APIView):
+    def get(self, request):
+        checkout_session_id = request.GET.get("session_id", None)
+        token = request.GET.get("token", None)
+        valid_data = AccessToken(token)
+
+        data = stripe.checkout.Session.retrieve(
+            checkout_session_id,
+        )
+        user = User.objects.get(id=valid_data["user_id"])
+        user.account_balance = user.account_balance + data.amount_total
+        ActorProvider().deposited(str(user.id), data.amount_total)
+        user.save()
+
+        return redirect("http://localhost:3000/", code=200)

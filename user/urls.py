@@ -23,9 +23,13 @@ urlpatterns = [
     path("user", views.UserView.as_view()),
     path("user/me", views.GetMeView.as_view()),
     path("user/statistical", views.StatisticalView.as_view()),
+    path("user/admin-statistical", views.AdminStatisticalView.as_view()),
+    path("user/user-total", views.TotalUserView.as_view()),
     path("user/update", views.UpdateUserView.as_view()),
     path("user/<uuid:pk>", views.GetUserView.as_view()),
     path("user/list", views.GetListUserView.as_view()),
     path("user/confirm", views.ConfirmUserView.as_view()),
     path("user/lock", views.BlackUserView.as_view()),
+    path("user/checkout", views.create_checkout.as_view()),
+    path("user/done-checkout", views.payment_successful.as_view()),
 ]
