@@ -13,6 +13,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 from django.utils.timezone import timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -277,3 +281,6 @@ ADDRESS_CONTRACT_PRODUCT_MANAGER = "0xB1CBf48819c1d80bbDc61fF567dC26C1468F41bc"
 ADDRESS_CONTRACT_TRACEBILITY = "0x4896cc48e9554f2A6B54A1011F19630CCAbd90b0"
 CHAIN_ID = 421613
 PRIVATE_KEY_SYSTEM = "2bd81d7cace245abc1a7e981075332251823b56a136c0154187cd8a0746ed84a"
+
+#
+ORIGIN_URL = os.environ.get("ORIGIN_URL")
