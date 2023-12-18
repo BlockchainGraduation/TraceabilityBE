@@ -628,14 +628,16 @@ class BlackUserView(APIView):
 
 # Checkout
 class create_checkout(APIView):
+    permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(
         tags=["Payment"],
         operation_summary="Payment",
     )
-    def post(self, request):
+    def post(self, request, **kwargs):
         YOUR_DOMAIN = settings.ORIGIN_URL
         print(YOUR_DOMAIN)
-        token = request.COOKIES["access"]
+        token = kwargs["key"]
         stripe.api_key = "sk_test_51NpMKLFobSqgGAG31Vf7UDMarMp5Gg0a8umlS4xMZcKiTbGgmRXPhzQlKs5R5xHDA5FtalNIXs3fS4oWUKGRQBap00bWsM3LBr"
 
         try:
@@ -656,7 +658,8 @@ class create_checkout(APIView):
         except Exception as e:
             raise AuthenticationFailed("Errr")
 
-        return redirect(checkout_session.url, code=303)
+        return Response({"detail": checkout_session.url}, status=status.HTTP_200_OK)
+        # return redirect(checkout_session.url, code=303)
 
 
 class payment_successful(APIView):
@@ -673,4 +676,4 @@ class payment_successful(APIView):
         ActorProvider().deposited(str(user.id), data.amount_total)
         user.save()
 
-        return redirect("http://localhost:3000/", code=200)
+        return redirect(settings.CLIENT_URL, code=200)

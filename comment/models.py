@@ -11,7 +11,7 @@ class Comment(models.Model):
     user_id = models.ForeignKey(
         User, related_name="product_comment", on_delete=models.PROTECT
     )
-    description = models.CharField()
+    description = models.CharField(max_length=255)
     create_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
