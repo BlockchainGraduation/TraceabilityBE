@@ -270,9 +270,7 @@ DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 #     "jquery-ui#~1.10.3",
 #     "d3#3.3.6",
 #     "nvd3#1.1.12-beta",
-# )
-
-# STATICFILES_FINDERS = ("djangobower.finders.BowerFinder",)
+# ).finders.BowerFinder",)
 
 # blockchain
 WEB3_PROVIDER = "https://goerli-rollup.arbitrum.io/rpc"
