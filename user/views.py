@@ -32,6 +32,8 @@ from .serializers import (
     ConfirmUserSerializer,
 )
 from .utils import generate_otp, send_otp_email
+import os
+from django.conf import settings
 
 
 def get_tokens_for_user(user):
@@ -631,7 +633,8 @@ class create_checkout(APIView):
         operation_summary="Payment",
     )
     def post(self, request):
-        YOUR_DOMAIN = "http://localhost:8000/"
+        YOUR_DOMAIN = settings.ORIGIN_URL
+        print(YOUR_DOMAIN)
         token = request.COOKIES["access"]
         stripe.api_key = "sk_test_51NpMKLFobSqgGAG31Vf7UDMarMp5Gg0a8umlS4xMZcKiTbGgmRXPhzQlKs5R5xHDA5FtalNIXs3fS4oWUKGRQBap00bWsM3LBr"
 

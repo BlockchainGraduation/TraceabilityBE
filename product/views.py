@@ -168,20 +168,20 @@ class ProductViews(viewsets.ModelViewSet):
 
         return super(viewsets.ModelViewSet, self).get_serializer_class()
 
-    def partial_update(self, request, *args, **kwargs):
-        super().partial_update(request, args, kwargs)
-        product = Product.objects.get(id=kwargs["pk"])
-        status = 1 if product.active else 0
-        tx_hash = ProductProvider().update_product(
-            product_id=str(product.id),
-            hash_info="",
-            quantity=product.quantity,
-            price=product.price,
-            status=status,
-        )
-        product.tx_hash = tx_hash
-        product.save()
-        return HttpResponse("SUCCESS")
+    # def partial_update(self, request, *args, **kwargs):
+    #     super().partial_update(request, args, kwargs)
+    #     product = Product.objects.get(id=kwargs["pk"])
+    #     status = 1 if product.active else 0
+    #     tx_hash = ProductProvider().update_product(
+    #         product_id=str(product.id),
+    #         hash_info="",
+    #         quantity=product.quantity,
+    #         price=product.price,
+    #         status=status,
+    #     )
+    #     product.tx_hash = tx_hash
+    #     product.save()
+    #     return HttpResponse("SUCCESS")
 
 
 class ProductTypeViews(generics.ListAPIView):
