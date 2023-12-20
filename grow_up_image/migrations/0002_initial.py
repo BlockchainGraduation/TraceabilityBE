@@ -9,14 +9,14 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
+        ('grow_up_image', '0001_initial'),
         ('growup', '0001_initial'),
-        ('product', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='growup',
-            name='product_id',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='growup', to='product.product'),
+            model_name='growupimage',
+            name='growup_id',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='growup_images', to='growup.growup'),
         ),
     ]

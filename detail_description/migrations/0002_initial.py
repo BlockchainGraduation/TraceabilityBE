@@ -9,14 +9,14 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('transaction', '0001_initial'),
+        ('detail_description', '0001_initial'),
         ('product', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='transaction_id',
-            field=models.ForeignKey(default=None, null=True, on_delete=django.db.models.deletion.PROTECT, to='transaction.transaction'),
+            model_name='detaildescription',
+            name='product_id',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='detail_decriptions', to='product.product'),
         ),
     ]

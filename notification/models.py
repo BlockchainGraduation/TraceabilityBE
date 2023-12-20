@@ -11,7 +11,9 @@ class Notification(models.Model):
     product_id = models.ForeignKey(
         "product.Product", related_name="product_notification", on_delete=models.PROTECT
     )
-    notification_type = models.CharField(choices=ROLE_CHOICE, default="NONE")
+    notification_type = models.CharField(
+        choices=ROLE_CHOICE, default="NONE", max_length=255
+    )
     active = models.BooleanField(default=False)
     create_by = models.ForeignKey(
         "user.User", related_name="user_notification", on_delete=models.PROTECT
