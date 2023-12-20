@@ -1,11 +1,20 @@
-from ..user.models import User
+import os
+from django.core.wsgi import get_wsgi_application
 
-username = "admin"
-password = "trung@gmail.com"
+# Đặt biến môi trường DJANGO_SETTINGS_MODULE
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "your_project_name.settings")
+
+# Khởi tạo ứng dụng Django
+application = get_wsgi_application()
+
+# Import model User từ ứng dụng auth
+from django.contrib.auth.models import User
 
 # Kiểm tra xem superuser đã tồn tại chưa
+username = "trung"
+password = "trug2001"
 if not User.objects.filter(username=username).exists():
-    User.objects.create_superuser(username, "admin@example.com", password)
+    User.objects.create_superuser(username, "trung@gmail.com", password)
     print(f"Superuser '{username}' đã được tạo thành công.")
 else:
     print(f"Superuser '{username}' đã tồn tại.")
