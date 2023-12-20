@@ -1,8 +1,4 @@
-from django.conf import settings
-from django.contrib.auth import get_user_model
-
-settings.configure()
-User = get_user_model()
+from ..user.models import User
 
 username = "admin"
 password = "trung@gmail.com"
