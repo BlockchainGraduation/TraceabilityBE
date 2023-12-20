@@ -8,7 +8,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "traceability_be.settings")
 application = get_wsgi_application()
 
 # Import model User từ ứng dụng auth
-from django.contrib.auth.models import User
+from user.models import User
 
 # Kiểm tra xem superuser đã tồn tại chưa
 username = "trung"
