@@ -1,4 +1,4 @@
-from .user.models import User
+from .models import User
 
 username = "admin"
 password = "trung@gmail.com"
