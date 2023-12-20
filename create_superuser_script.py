@@ -2,7 +2,7 @@ import os
 from django.core.wsgi import get_wsgi_application
 
 # Đặt biến môi trường DJANGO_SETTINGS_MODULE
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "your_project_name.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "traceability_be.settings")
 
 # Khởi tạo ứng dụng Django
 application = get_wsgi_application()
