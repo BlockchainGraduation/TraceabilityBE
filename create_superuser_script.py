@@ -14,7 +14,7 @@ from user.models import User
 username = "trung"
 password = "trung2001"
 if not User.objects.filter(username=username).exists():
-    user = User.create(
+    user = User.objects.create(
         username=username,
         email="trung@gmail.com",
         password=password,
