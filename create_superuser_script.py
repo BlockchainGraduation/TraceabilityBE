@@ -12,9 +12,19 @@ from user.models import User
 
 # Kiểm tra xem superuser đã tồn tại chưa
 username = "trung"
-password = "trug2001"
+password = "trung2001"
 if not User.objects.filter(username=username).exists():
-    User.objects.create_superuser(username, "trung@gmail.com", password)
+    user = User.objects.create(
+        username,
+        "trung@gmail.com",
+        password,
+        is_admin=True,
+        is_staff=True,
+        is_active=True,
+        role="ADMIN",
+    )
+    user.set_password(password)
+    user.save()
     print(f"Superuser '{username}' đã được tạo thành công.")
 else:
     print(f"Superuser '{username}' đã tồn tại.")
