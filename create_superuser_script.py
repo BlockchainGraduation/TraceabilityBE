@@ -14,10 +14,10 @@ from user.models import User
 username = "trung"
 password = "trung2001"
 if not User.objects.filter(username=username).exists():
-    user = User.objects.create(
-        username,
-        "trung@gmail.com",
-        password,
+    user = User.create(
+        username=username,
+        email="trung@gmail.com",
+        password=password,
         is_admin=True,
         is_staff=True,
         is_active=True,
