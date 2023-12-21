@@ -14,6 +14,8 @@ import os
 from pathlib import Path
 from django.utils.timezone import timedelta
 from dotenv import load_dotenv
+import django_heroku
+import dj_database_url
 
 load_dotenv()
 
@@ -117,18 +119,18 @@ WSGI_APPLICATION = "traceability_be.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    # "default": {
-    #     "ENGINE": "django.db.backends.postgresql",
-    #     "NAME": "traceabilityDB",
-    #     "USER": "postgres",
-    #     "PASSWORD": "trung2001",
-    #     "HOST": "localhost",
-    #     "PORT": "5432",
-    # },
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "traceabilityDB",
+        "USER": "postgres",
+        "PASSWORD": "trung2001",
+        "HOST": "localhost",
+        "PORT": "5432",
+    },
+    # "default": {
+    #     "ENGINE": "django.db.backends.sqlite3",
+    #     "NAME": BASE_DIR / "db.sqlite3",
+    # }
 }
 
 
@@ -260,6 +262,9 @@ CLOUDINARY_STORAGE = {
 MEDIA_URL = "/media/"  # or any prefix you choose
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_DIRS = os.path.join(BASE_DIR, "static")
+django_heroku.settings(locals())
 # Statistical
 
 # BOWER_COMPONENTS_ROOT = os.path.join("traceability_be", "components")
