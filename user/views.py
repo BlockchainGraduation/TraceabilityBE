@@ -653,7 +653,7 @@ class create_checkout(APIView):
                 success_url=YOUR_DOMAIN
                 + "api/user/done-checkout?session_id={CHECKOUT_SESSION_ID}&token="
                 + token,
-                cancel_url=YOUR_DOMAIN + "/cancel.html",
+                cancel_url=settings.CLIENT_URL,
             )
         except Exception as e:
             raise AuthenticationFailed("Errr")
