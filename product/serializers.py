@@ -163,13 +163,21 @@ class ProductSerializers(serializers.ModelSerializer):
             return product
 
     def update(self, instance, validated_data):
-        if self.initial_data.get("uploaded_images") is None:
-            return super().update(instance, validated_data)
-        uploaded_images = validated_data.pop("uploaded_images")
         product = Product.objects.filter(
             pk=self.context["view"].kwargs.get("pk")
         ).first()
-        ProductImage.objects.filter(product=product).delete()
-        for image in uploaded_images:
-            ProductImage.objects.create(product=product, image=image)
-        return super().update(instance, validated_data)
+        if self.initial_data.get("uploaded_images"):
+            uploaded_images = validated_data.pop("uploaded_images")
+            ProductImage.objects.filter(product=product).delete()
+            for image in uploaded_images:
+                ProductImage.objects.create(product=product, image=image)
+        newProduct = super().update(instance, validated_data)
+        ProductProvider().update_product(
+            product_id=str(newProduct.pk),
+            price=newProduct.price,
+            quantity=newProduct.quantity,
+            status=1 if newProduct.active else 0,
+            hash_info="",
+        )
+
+        return newProduct
